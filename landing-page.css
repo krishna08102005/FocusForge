@@ -1,0 +1,80 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  background-color: black;
+}
+
+.header {
+  padding: 15px 40px;
+  display: flex;
+  justify-content:space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);  
+  
+}
+
+.logo img {
+  height: 70px;   /* adjust size */
+  width: 70px;
+  
+
+}
+
+.logo {
+  font-size: 26px;
+  font-weight: bold;
+  color:#ff0000; /* blue */
+  font-family:Verdana, Geneva, Tahoma, sans-serif;
+}
+.buttons{
+  display:flex;
+  gap:6px;
+}
+.signin-btn{
+  background:rgb(137, 129, 120);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.login-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.login-btn:hover {
+  background: #1e40af; /* darker blue */
+}
+
+/* Hero Section */
+.hero {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+  
+}
+
+
+.hero h1 {
+  font-size: 42px;
+  color:#3c71e3;
+  margin-bottom: 15px;
+}
+
+.hero p {
+  font-size: 20px;
+  color: #9fa9bd;
+  max-width: 700px;
+}
