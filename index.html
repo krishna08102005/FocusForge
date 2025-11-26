@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>FocusForge — Habits & Friends</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -349,36 +349,272 @@
     border-bottom: 1px solid rgba(255,255,255,0.1);
   }
 
+  /* ===== MOBILE OPTIMIZATION FIXES ===== */
+
+  /* Better touch targets for mobile */
   @media (max-width: 768px) {
-    .app{min-height:100vh;}
-    .content{padding:0.75rem;padding-bottom:5rem;}
-    .grid{grid-template-columns:1fr;gap:0.75rem;}
-    .card{padding:0.75rem;}
-    .section-title{flex-direction:column;align-items:flex-start;gap:0.5rem;}
-    .fab.habit-fab{bottom:5.5rem;right:1rem;width:50px;height:50px;font-size:1.1rem;}
-    .modal{padding:1.25rem;margin:1rem;}
-    .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg, var(--surface), var(--bg));backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);z-index:10;}
-    .message{max-width:90%;}
+    /* Improve header layout */
+    header.app-header {
+      padding: 0.75rem;
+      gap: 0.75rem;
+    }
+    
+    .title h1 {
+      font-size: 1.1rem;
+    }
+    
+    .logo {
+      width: 36px;
+      height: 36px;
+      font-size: 0.9rem;
+    }
+    
+    /* Better content spacing */
+    .content {
+      padding: 0.75rem;
+      padding-bottom: 6rem; /* More space for bottom nav */
+    }
+    
+    /* Single column layout for habits */
+    .grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    
+    .card {
+      padding: 1rem;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    
+    /* Better progress circle sizing */
+    .progress {
+      width: 50px;
+      height: 50px;
+      margin: 0 auto;
+    }
+    
+    .progress svg {
+      width: 50px;
+      height: 50px;
+    }
+    
+    /* Stack habit actions */
+    .habit-actions {
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    
+    .habit-actions .btn {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    /* Better bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, var(--surface), var(--bg));
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      z-index: 100;
+      padding: 0.5rem;
+    }
+    
+    .nav-item {
+      padding: 0.5rem;
+      font-size: 0.7rem;
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    .nav-item i {
+      font-size: 1.1rem;
+    }
+    
+    /* Better modals for mobile */
+    .modal {
+      margin: 1rem;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    
+    .modal-backdrop {
+      padding: 0.5rem;
+      align-items: flex-end;
+    }
+    
+    /* Improve friend items layout */
     .friend-item, .request-item, .search-result-item {
       flex-direction: column;
       text-align: center;
       gap: 0.75rem;
+      padding: 0.75rem;
     }
+    
     .friend-actions, .request-actions {
+      justify-content: center;
+      width: 100%;
+    }
+    
+    .friend-actions .btn, .request-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+    
+    /* Better chat messages */
+    .message {
+      max-width: 90%;
+      min-width: auto;
+    }
+    
+    /* Improve section titles */
+    .section-title {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .section-title .btn {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    /* Better FAB positioning */
+    .fab.habit-fab {
+      bottom: 5.5rem;
+      right: 1rem;
+      width: 56px;
+      height: 56px;
+      font-size: 1.25rem;
+    }
+  }
+
+  /* Extra small devices */
+  @media (max-width: 480px) {
+    header.app-header {
+      padding: 0.5rem;
+    }
+    
+    .content {
+      padding: 0.5rem;
+      padding-bottom: 6rem;
+    }
+    
+    .card {
+      padding: 0.75rem;
+    }
+    
+    /* Better header actions */
+    .header-actions {
+      gap: 0.25rem;
+    }
+    
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      font-size: 0.9rem;
+    }
+    
+    /* Improve history bars */
+    .history {
+      height: 25px;
+      gap: 1px;
+    }
+    
+    .hbar {
+      min-width: 2px;
+    }
+    
+    /* Better form inputs */
+    .form-row input, 
+    .form-row select, 
+    .form-row textarea {
+      font-size: 16px; /* Prevents zoom on iOS */
+      padding: 0.875rem;
+    }
+    
+    /* Improve modal actions */
+    .modal .actions {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .modal .actions .ghost,
+    .modal .actions .btn-modal {
+      width: 100%;
       justify-content: center;
     }
   }
 
-  @media (max-width: 480px) {
-    header.app-header{padding:0.75rem;}
-    .logo{width:36px;height:36px;}
-    .title h1{font-size:1.1rem;}
-    .content{padding:0.5rem;padding-bottom:5rem;}
-    .card{flex-direction:column;gap:0.75rem;}
-    .progress{width:50px;height:50px;}
-    .progress svg{width:50px;height:50px;}
-    .habit-actions{justify-content:space-between;}
-    .header-actions{flex-direction:column;gap:0.25rem;}
+  /* ===== TOUCH IMPROVEMENTS ===== */
+  /* Better touch targets */
+  .btn, .nav-item, .icon-btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Prevent text size adjustment */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Improve scrolling */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+  }
+
+  /* Better tap highlights */
+  button, .btn, .nav-item, .icon-btn {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Improve focus for accessibility */
+  button:focus-visible, 
+  .btn:focus-visible, 
+  .nav-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ===== FIX FOR KEYBOARD ON MOBILE ===== */
+  /* Ensure content is visible when keyboard is open */
+  .modal-backdrop {
+    align-items: flex-end;
+  }
+
+  @media (max-height: 600px) {
+    .modal {
+      max-height: 90vh;
+    }
+  }
+
+  /* ===== IMPROVE LOADING STATES ===== */
+  .loading {
+    padding: 2rem;
+    text-align: center;
+  }
+
+  /* ===== BETTER EMPTY STATES ===== */
+  .empty, .empty-friends, .empty-status {
+    padding: 2rem 1rem;
+  }
+
+  .empty i, .empty-friends i, .empty-status i {
+    font-size: 2.5rem;
   }
 </style>
 <script type="module">
