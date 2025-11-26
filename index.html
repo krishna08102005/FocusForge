@@ -27,8 +27,65 @@
   .sub{font-size:0.75rem;color:var(--muted);margin-top:0.25rem}
   .header-actions{display:flex;gap:0.5rem;align-items:center}
   .icon-btn{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.02);cursor:pointer;color:var(--muted);flex-shrink:0;}
-  .user-info{display:flex;align-items:center;gap:0.5rem;color:var(--muted);font-size:0.8rem;}
-  .user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:600;color:#021025;font-size:0.8rem;}
+  
+  /* Updated User Info Styles - Only icon, no text */
+  .user-info{display:flex;align-items:center;gap:0.5rem;}
+  .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:600;color:#021025;font-size:1rem;cursor:pointer;transition:transform 0.2s ease;border:2px solid rgba(255,255,255,0.1);}
+  .user-avatar:hover{transform:scale(1.05);}
+  .user-text{display:none;} /* Hide the email text */
+
+  /* Account Modal Styles */
+  .account-modal {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .account-info {
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .account-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .account-field:last-child {
+    border-bottom: none;
+  }
+  
+  .account-label {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  
+  .account-value {
+    font-weight: 600;
+    color: #e8f2ff;
+  }
+  
+  .edit-username {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    display: none;
+  }
+  
+  .edit-username input {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: #eaf3ff;
+  }
+
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
   .content{flex:1;padding:1rem;overflow-y:auto;}
   section.app-section{display:none;height:100%;}
@@ -361,14 +418,19 @@
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         
-        document.getElementById('userEmail').textContent = user.email;
+        // Update UI with user info
         document.getElementById('userAvatar').textContent = currentUsername.charAt(0).toUpperCase();
         document.getElementById('navUsername').textContent = currentUsername;
+        document.getElementById('accountUsername').textContent = currentUsername;
+        document.getElementById('accountEmail').textContent = user.email;
         
         // Initialize all apps
         initializeHabitApp(user.email);
         initializeFriendsApp(user);
         initializeStatusApp(user);
+        
+        // Setup account modal
+        setupAccountModal();
       } catch (error) {
         console.error('Error initializing app:', error);
         document.getElementById('loadingText').textContent = 'Error loading app. Please refresh.';
@@ -380,6 +442,107 @@
       }, 1500);
     }
   });
+
+  // Setup account modal functionality
+  function setupAccountModal() {
+    const accountModal = document.getElementById('accountModal');
+    const userAvatar = document.getElementById('userAvatar');
+    const closeAccountModal = document.getElementById('closeAccountModal');
+    const editUsernameBtn = document.getElementById('editUsernameBtn');
+    const saveUsernameBtn = document.getElementById('saveUsernameBtn');
+    const cancelEditUsername = document.getElementById('cancelEditUsername');
+    const usernameInput = document.getElementById('usernameInputEdit');
+    const usernameDisplay = document.getElementById('accountUsername');
+    const signOutAccountBtn = document.getElementById('signOutAccountBtn');
+
+    // Open account modal when clicking user avatar
+    userAvatar.addEventListener('click', () => {
+      accountModal.style.display = 'flex';
+    });
+
+    // Close account modal
+    closeAccountModal.addEventListener('click', () => {
+      accountModal.style.display = 'none';
+      cancelEdit(); // Reset edit state
+    });
+
+    // Edit username
+    editUsernameBtn.addEventListener('click', () => {
+      document.querySelector('.username-display').style.display = 'none';
+      document.querySelector('.edit-username').style.display = 'flex';
+      usernameInput.value = currentUsername;
+      usernameInput.focus();
+    });
+
+    // Save username
+    saveUsernameBtn.addEventListener('click', async () => {
+      const newUsername = usernameInput.value.trim().toLowerCase();
+      if (!newUsername) {
+        alert('Please enter a username');
+        return;
+      }
+      
+      if (!/^[a-z0-9_]{3,20}$/.test(newUsername)) {
+        alert('Username must be 3-20 characters (letters, numbers, underscore only)');
+        return;
+      }
+      
+      if (newUsername === currentUsername) {
+        cancelEdit();
+        return;
+      }
+      
+      try {
+        // Check if username is available
+        const usernameQuery = query(collection(db, 'users'), where('username', '==', newUsername));
+        const usernameSnap = await getDocs(usernameQuery);
+        
+        if (!usernameSnap.empty) {
+          alert('Username already taken. Please choose another one.');
+          return;
+        }
+        
+        // Update username in database
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+          username: newUsername,
+          displayName: newUsername
+        });
+        
+        // Update local state
+        currentUsername = newUsername;
+        document.getElementById('userAvatar').textContent = newUsername.charAt(0).toUpperCase();
+        document.getElementById('navUsername').textContent = newUsername;
+        usernameDisplay.textContent = newUsername;
+        
+        cancelEdit();
+        alert('Username updated successfully!');
+      } catch (error) {
+        console.error('Error updating username:', error);
+        alert('Error updating username. Please try again.');
+      }
+    });
+
+    // Cancel edit
+    cancelEditUsername.addEventListener('click', cancelEdit);
+
+    // Sign out from account modal
+    signOutAccountBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to sign out?')) {
+        try {
+          await signOut(auth);
+          window.location.href = 'signin.html';
+        } catch (error) {
+          console.error('Error signing out:', error);
+        }
+      }
+    });
+
+    function cancelEdit() {
+      document.querySelector('.username-display').style.display = 'flex';
+      document.querySelector('.edit-username').style.display = 'none';
+    }
+  }
 
   // Initialize user profile with username
   async function initializeUserProfile(user) {
@@ -446,7 +609,7 @@
     }
   }
 
-  // Sign out functionality
+  // Sign out functionality (from header)
   document.getElementById('signOutBtn').addEventListener('click', async () => {
     if (confirm('Are you sure you want to sign out?')) {
       try {
@@ -1317,6 +1480,53 @@
     </div>
   </div>
 
+  <!-- Account Details Modal -->
+  <div class="modal-backdrop" id="accountModal">
+    <div class="modal account-modal">
+      <div class="modal-header">
+        <h3>Account Details</h3>
+        <button class="ghost" id="closeAccountModal">Close</button>
+      </div>
+      
+      <div class="account-info">
+        <div class="account-field">
+          <div class="account-label">Username</div>
+          <div class="username-display">
+            <span class="account-value" id="accountUsername">username</span>
+            <button class="ghost" id="editUsernameBtn" style="margin-left:0.5rem;padding:0.25rem 0.5rem;font-size:0.8rem;">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+          <div class="edit-username">
+            <input type="text" id="usernameInputEdit" maxlength="20" />
+            <button class="btn-success" id="saveUsernameBtn" style="padding:0.5rem;">
+              <i class="fa-solid fa-check"></i>
+            </button>
+            <button class="ghost" id="cancelEditUsername" style="padding:0.5rem;">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="account-field">
+          <div class="account-label">Email</div>
+          <div class="account-value" id="accountEmail">user@email.com</div>
+        </div>
+        
+        <div class="account-field">
+          <div class="account-label">Member Since</div>
+          <div class="account-value" id="accountCreated">Recently</div>
+        </div>
+      </div>
+      
+      <div class="actions">
+        <button class="ghost" id="signOutAccountBtn">
+          <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Main App -->
   <div class="app" id="mainApp" style="display: none;">
     <header class="app-header">
@@ -1328,9 +1538,9 @@
         </div>
       </div>
       <div class="header-actions">
-        <div class="user-info" id="userInfo">
-          <div class="user-avatar" id="userAvatar">U</div>
-          <span id="userEmail">user@email.com</span>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar" title="Account Details">U</div>
+          <!-- Text removed, only icon remains -->
         </div>
         <div class="icon-btn" id="refreshBtn" title="Refresh"><i class="fa-solid fa-rotate"></i></div>
         <div class="icon-btn" id="signOutBtn" title="Sign Out"><i class="fa-solid fa-right-from-bracket"></i></div>
@@ -1502,4 +1712,3 @@
   </div>
 </body>
 </html>
-
