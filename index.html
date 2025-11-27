@@ -15,22 +15,22 @@
     --success:#34d399;
     --danger:#ef4444;
     --card:#0b1724;
-    --radius:12px;
+    --radius:8px;
   }
   *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;}
   html,body{height:100%;background:linear-gradient(180deg,var(--bg),var(--surface));color:#e8f2ff;-webkit-font-smoothing:antialiased;}
   a{color:inherit}
   .app{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--bg),var(--surface));}
-  header.app-header{padding:1rem;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));gap:1rem;border-bottom:1px solid rgba(255,255,255,0.03);}
-  .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#021025;flex-shrink:0;}
-  .title h1{font-size:1.25rem;margin:0}
-  .sub{font-size:0.75rem;color:var(--muted);margin-top:0.25rem}
-  .header-actions{display:flex;gap:0.5rem;align-items:center}
-  .icon-btn{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.02);cursor:pointer;color:var(--muted);flex-shrink:0;}
+  header.app-header{padding:0.75rem;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));gap:1rem;border-bottom:1px solid rgba(255,255,255,0.03);}
+  .logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#021025;flex-shrink:0;font-size:0.8rem;}
+  .title h1{font-size:1.1rem;margin:0}
+  .sub{font-size:0.7rem;color:var(--muted);margin-top:0.1rem;}
+  .header-actions{display:flex;gap:0.4rem;align-items:center}
+  .icon-btn{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.02);cursor:pointer;color:var(--muted);flex-shrink:0;font-size:0.9rem;}
   
   /* Updated User Info Styles - Only icon, no text */
   .user-info{display:flex;align-items:center;gap:0.5rem;}
-  .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:600;color:#021025;font-size:1rem;cursor:pointer;transition:transform 0.2s ease;border:2px solid rgba(255,255,255,0.1);}
+  .user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:600;color:#021025;font-size:0.9rem;cursor:pointer;transition:transform 0.2s ease;border:2px solid rgba(255,255,255,0.1);}
   .user-avatar:hover{transform:scale(1.05);}
   .user-text{display:none;} /* Hide the email text */
 
@@ -87,46 +87,148 @@
   }
 
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-  .content{flex:1;padding:1rem;overflow-y:auto;}
+  .content{flex:1;padding:0.75rem;overflow-y:auto;}
   section.app-section{display:none;height:100%;}
   section.app-section.active{display:block;}
-  .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;}
-  .small-muted{font-size:0.8rem;color:var(--muted);}
-  .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));}
-  .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:var(--radius);padding:1rem;display:flex;gap:1rem;align-items:flex-start;border:1px solid rgba(255,255,255,0.03);position:relative;transition:transform 0.2s ease, box-shadow 0.2s ease;}
-  .card:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(2,6,23,0.6);}
-  .progress{width:60px;height:60px;flex:0 0 60px;display:grid;place-items:center;position:relative;}
-  .progress svg{transform:rotate(-90deg);width:60px;height:60px;}
-  .progress .center{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:0.7rem;color:#e6eef8;}
+  .section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;}
+  .small-muted{font-size:0.7rem;color:var(--muted);}
+  .grid{display:grid;gap:0.5rem;grid-template-columns:1fr;}
+  
+  /* COMPACT CARD STYLES - matching reference but without history */
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
+    border-radius:var(--radius);
+    padding:0.6rem;
+    display:flex;
+    gap:0.6rem;
+    align-items:center;
+    border:1px solid rgba(255,255,255,0.03);
+    position:relative;
+    transition:transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: auto;
+  }
+  .card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(2,6,23,0.4);}
+  
+  /* SMALLER PROGRESS CIRCLES */
+  .progress{
+    width:36px;
+    height:36px;
+    flex:0 0 36px;
+    display:grid;
+    place-items:center;
+    position:relative;
+  }
+  .progress svg{
+    transform:rotate(-90deg);
+    width:36px;
+    height:36px;
+  }
+  .progress .center{
+    position:absolute;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:0.55rem;
+    color:#e6eef8;
+    line-height:1;
+  }
+  .progress .center div:first-child{
+    font-weight:800;
+    font-size:0.65rem;
+  }
+  
   .meta{flex:1;min-width:0;}
-  .habit-name{font-weight:700;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0.25rem;}
-  .habit-note{font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem;}
-  .habit-meta-row{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;}
-  .chip{font-size:0.7rem;padding:0.25rem 0.5rem;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);color:var(--muted);}
-  .habit-actions{display:flex;gap:0.5rem;align-items:center;margin-top:0.75rem;}
-  .btn{padding:0.5rem 0.75rem;border-radius:8px;border:none;cursor:pointer;font-weight:600;font-size:0.8rem;display:inline-flex;gap:0.25rem;align-items:center;justify-content:center;transition:all 0.2s ease;}
-  .btn-mark{background:linear-gradient(90deg,var(--success),#10b981);color:#021;border:none;}
-  .btn-more{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted);padding:0.5rem;border-radius:8px;}
-  .history{display:flex;gap:2px;align-items:end;height:30px;margin-top:0.5rem;justify-content:space-between;}
-  .hbar{flex:1;min-width:2px;border-radius:1px;background:rgba(255,255,255,0.06);transition:all 0.3s ease;}
-  .hbar.active{background:linear-gradient(180deg,var(--accent),var(--accent-2))}
+  .habit-name{
+    font-weight:700;
+    font-size:0.8rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-bottom:0.1rem;
+    line-height:1.2;
+  }
+  .habit-note{
+    font-size:0.65rem;
+    color:var(--muted);
+    margin-bottom:0.3rem;
+    line-height:1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    /* Add standard line-clamp for better browser support */
+    line-clamp: 1;
+  }
+  .habit-meta-row{
+    display:flex;
+    gap:0.3rem;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-bottom:0.2rem;
+  }
+  .chip{
+    font-size:0.6rem;
+    padding:0.15rem 0.3rem;
+    border-radius:6px;
+    background:rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.02);
+    color:var(--muted);
+  }
+  .habit-actions{
+    display:flex;
+    gap:0.3rem;
+    align-items:center;
+    margin-top:0.3rem;
+  }
+  .btn{
+    padding:0.3rem 0.5rem;
+    border-radius:5px;
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+    font-size:0.65rem;
+    display:inline-flex;
+    gap:0.15rem;
+    align-items:center;
+    justify-content:center;
+    transition:all 0.2s ease;
+    line-height:1;
+  }
+  .btn-mark{
+    background:linear-gradient(90deg,var(--success),#10b981);
+    color:#021;
+    border:none;
+  }
+  .btn-more{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.03);
+    color:var(--muted);
+    padding:0.3rem;
+    border-radius:5px;
+    width:24px;
+    height:24px;
+  }
+  
+  /* History container removed - this is what you wanted to remove */
+  .history{display:none !important;} /* Completely hide the history bars */
   
   /* FAB button - only visible in habits section */
   .fab.habit-fab {
     position: fixed;
-    right: 1.5rem;
+    right: 1rem;
     bottom: 5rem;
     z-index: 30;
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: #021025;
-    font-size: 1.25rem;
+    font-size: 1rem;
     cursor: pointer;
-    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
     border: none;
     transition: transform 0.2s ease;
     display: none;
@@ -134,7 +236,7 @@
   .fab.habit-fab:hover{transform:scale(1.1);}
   
   .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.8);display:none;align-items:center;justify-content:center;z-index:40;padding:1rem;}
-  .modal{width:100%;max-width:500px;background:linear-gradient(180deg,#061025,#07142a);border-radius:1rem;padding:1.5rem;border:1px solid rgba(255,255,255,0.03);color:#eaf3ff;max-height:90vh;overflow-y:auto;}
+  .modal{width:100%;max-width:500px;background:linear-gradient(180deg,#061025,#07142a);border-radius:1rem;padding:1.25rem;border:1px solid rgba(255,255,255,0.03);color:#eaf3ff;max-height:90vh;overflow-y:auto;}
   .form-row{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;}
   .form-row label{color:var(--muted);font-size:0.9rem;font-weight:500;}
   .form-row input,.form-row select,textarea{width:100%;padding:0.75rem;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#eaf3ff;outline:none;font-size:1rem;transition:border-color 0.2s ease;}
@@ -145,32 +247,33 @@
   .ghost:hover{background:rgba(255,255,255,0.05);}
   .btn-modal{background:linear-gradient(90deg,var(--success),#10b981);color:#021;border:none;padding:0.75rem 1.5rem;border-radius:8px;cursor:pointer;font-weight:600;transition:transform 0.2s ease;}
   .btn-modal:hover{transform:translateY(-1px);}
-  .more-menu{position:absolute;background:#061025;border:1px solid rgba(255,255,255,0.1);padding:0.5rem;border-radius:8px;z-index:50;display:none;min-width:140px;box-shadow:0 8px 25px rgba(0,0,0,0.3);}
-  .more-menu button{display:block;background:transparent;border:none;color:var(--muted);padding:0.75rem 1rem;width:100%;text-align:left;cursor:pointer;border-radius:6px;font-size:0.9rem;transition:all 0.2s ease;}
+  .more-menu{position:absolute;background:#061025;border:1px solid rgba(255,255,255,0.1);padding:0.4rem;border-radius:6px;z-index:50;display:none;min-width:120px;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+  .more-menu button{display:block;background:transparent;border:none;color:var(--muted);padding:0.5rem 0.75rem;width:100%;text-align:left;cursor:pointer;border-radius:4px;font-size:0.8rem;transition:all 0.2s ease;}
   .more-menu button:hover{background:rgba(255,255,255,0.05);color:#e6eef8}
-  .bottom-nav{display:flex;justify-content:space-around;align-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-top:1px solid rgba(255,255,255,0.03);padding:0.75rem 0.5rem;gap:0.25rem;margin-top:auto;}
-  .nav-item{text-align:center;flex:1;color:var(--muted);font-size:0.75rem;cursor:pointer;padding:0.5rem 0.25rem;display:flex;flex-direction:column;align-items:center;gap:0.25rem;transition:all 0.2s ease;border-radius:8px;}
+  .bottom-nav{display:flex;justify-content:space-around;align-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-top:1px solid rgba(255,255,255,0.03);padding:0.5rem;gap:0.25rem;margin-top:auto;}
+  .nav-item{text-align:center;flex:1;color:var(--muted);font-size:0.65rem;cursor:pointer;padding:0.4rem 0.2rem;display:flex;flex-direction:column;align-items:center;gap:0.2rem;transition:all 0.2s ease;border-radius:6px;}
   .nav-item:hover{background:rgba(255,255,255,0.02);}
   .nav-item.active{color:var(--accent);}
-  .nav-item i{font-size:1.25rem;}
-  .feed{display:flex;flex-direction:column;gap:1rem;}
-  .post{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border-radius:12px;padding:1rem;border:1px solid rgba(255,255,255,0.02)}
-  footer.app-footer{padding:1rem;border-top:1px solid rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:0.8rem;background:transparent;}
-  .empty{text-align:center;padding:3rem 2rem;color:var(--muted);display:none;}
-  .empty i{font-size:3rem;margin-bottom:1rem;opacity:0.5;}
+  .nav-item i{font-size:1rem;}
+  .feed{display:flex;flex-direction:column;gap:0.75rem;}
+  .post{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border-radius:10px;padding:0.75rem;border:1px solid rgba(255,255,255,0.02)}
+  footer.app-footer{padding:0.75rem;border-top:1px solid rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:0.7rem;background:transparent;}
+  .empty{text-align:center;padding:2rem 1rem;color:var(--muted);display:none;}
+  .empty i{font-size:2rem;margin-bottom:0.75rem;opacity:0.5;}
+  .empty div{font-size:0.9rem;}
   .loading{display:flex;justify-content:center;align-items:center;height:100vh;background:var(--bg);color:white;flex-direction:column;gap:1rem;}
-  .loading .logo{width:60px;height:60px;font-size:1.5rem;}
+  .loading .logo{width:50px;height:50px;font-size:1.2rem;}
 
   /* Friends System Styles */
   .friend-item, .request-item, .search-result-item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    border-radius: 10px;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.02);
     background: rgba(255,255,255,0.01);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
     transition: all 0.2s ease;
   }
 
@@ -180,8 +283,8 @@
   }
 
   .friend-avatar {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
@@ -190,68 +293,72 @@
     font-weight: 700;
     color: #021025;
     flex-shrink: 0;
+    font-size: 0.8rem;
   }
 
   .friend-actions, .request-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
 
   .btn-chat {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: #021025;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
   }
 
   .btn-success {
     background: var(--success);
     color: #021025;
     border: none;
-    padding: 0.5rem;
-    border-radius: 8px;
+    padding: 0.4rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
   }
 
   .btn-danger {
     background: var(--danger);
     color: white;
     border: none;
-    padding: 0.5rem;
-    border-radius: 8px;
+    padding: 0.4rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
   }
 
   .empty-friends, .empty-status {
     text-align: center;
-    padding: 3rem 2rem;
+    padding: 2rem 1rem;
     color: var(--muted);
   }
 
   .empty-friends i, .empty-status i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
     opacity: 0.5;
   }
 
   .requests-container {
     background: rgba(255,255,255,0.02);
-    border-radius: 12px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    border-radius: 10px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
   }
 
   .requests-title {
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
     color: var(--accent);
+    font-size: 0.8rem;
   }
 
   /* Chat Styles */
   .user-avatar-small {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
@@ -259,14 +366,14 @@
     justify-content: center;
     font-weight: 600;
     color: #021025;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     flex-shrink: 0;
   }
 
   .message {
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    padding: 0.6rem;
+    border-radius: 10px;
     max-width: 80%;
   }
 
@@ -282,20 +389,20 @@
   }
 
   .message-text {
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-size: 0.8rem;
+    line-height: 1.3;
   }
 
   .message-time {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     opacity: 0.7;
-    margin-top: 0.25rem;
+    margin-top: 0.2rem;
     text-align: right;
   }
 
   .status-text {
-    font-size: 0.95rem;
-    line-height: 1.4;
+    font-size: 0.85rem;
+    line-height: 1.3;
     color: #e8f2ff;
   }
 
@@ -310,108 +417,84 @@
   .messages-container {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem;
+    padding: 0.75rem;
     display: flex;
     flex-direction: column;
   }
 
   .chat-input-container {
     display: flex;
-    gap: 0.5rem;
-    padding: 1rem;
+    gap: 0.4rem;
+    padding: 0.75rem;
     border-top: 1px solid rgba(255,255,255,0.1);
   }
 
   .chat-input {
     flex: 1;
-    padding: 0.75rem;
-    border-radius: 20px;
+    padding: 0.6rem;
+    border-radius: 16px;
     border: 1px solid rgba(255,255,255,0.1);
     background: rgba(255,255,255,0.05);
     color: #eaf3ff;
     outline: none;
+    font-size: 0.8rem;
   }
 
   .send-btn {
-    padding: 0.75rem 1rem;
-    border-radius: 20px;
+    padding: 0.6rem 0.8rem;
+    border-radius: 16px;
     border: none;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: #021025;
     cursor: pointer;
+    font-size: 0.8rem;
   }
 
   .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 0.75rem;
     border-bottom: 1px solid rgba(255,255,255,0.1);
   }
 
   /* ===== MOBILE OPTIMIZATION FIXES ===== */
-
-  /* Better touch targets for mobile */
   @media (max-width: 768px) {
-    /* Improve header layout */
-    header.app-header {
-      padding: 0.75rem;
-      gap: 0.75rem;
-    }
-    
-    .title h1 {
-      font-size: 1.1rem;
-    }
-    
-    .logo {
-      width: 36px;
-      height: 36px;
-      font-size: 0.9rem;
-    }
-    
-    /* Better content spacing */
     .content {
-      padding: 0.75rem;
-      padding-bottom: 6rem; /* More space for bottom nav */
+      padding: 0.5rem;
+      padding-bottom: 5rem;
     }
     
-    /* Single column layout for habits */
     .grid {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
+      gap: 0.4rem;
     }
     
     .card {
-      padding: 1rem;
-      flex-direction: column;
-      gap: 0.75rem;
+      padding: 0.5rem;
+      gap: 0.5rem;
     }
     
-    /* Better progress circle sizing */
     .progress {
-      width: 50px;
-      height: 50px;
-      margin: 0 auto;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
     }
     
     .progress svg {
-      width: 50px;
-      height: 50px;
+      width: 32px;
+      height: 32px;
     }
     
-    /* Stack habit actions */
     .habit-actions {
-      flex-direction: column;
-      gap: 0.5rem;
-      width: 100%;
+      flex-direction: row;
+      gap: 0.3rem;
     }
     
     .habit-actions .btn {
-      width: 100%;
-      justify-content: center;
+      width: auto;
+      flex: 1;
     }
     
-    /* Better bottom nav */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -421,25 +504,12 @@
       backdrop-filter: blur(10px);
       border-top: 1px solid rgba(255,255,255,0.1);
       z-index: 100;
-      padding: 0.5rem;
+      padding: 0.4rem;
     }
     
-    .nav-item {
-      padding: 0.5rem;
-      font-size: 0.7rem;
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    .nav-item i {
-      font-size: 1.1rem;
-    }
-    
-    /* Better modals for mobile */
     .modal {
-      margin: 1rem;
+      margin: 0.5rem;
       max-height: 85vh;
-      overflow-y: auto;
     }
     
     .modal-backdrop {
@@ -447,12 +517,11 @@
       align-items: flex-end;
     }
     
-    /* Improve friend items layout */
     .friend-item, .request-item, .search-result-item {
       flex-direction: column;
       text-align: center;
-      gap: 0.75rem;
-      padding: 0.75rem;
+      gap: 0.5rem;
+      padding: 0.6rem;
     }
     
     .friend-actions, .request-actions {
@@ -462,127 +531,54 @@
     
     .friend-actions .btn, .request-actions .btn {
       flex: 1;
-      justify-content: center;
     }
     
-    /* Better chat messages */
     .message {
       max-width: 90%;
-      min-width: auto;
     }
     
-    /* Improve section titles */
     .section-title {
       flex-direction: column;
       align-items: flex-start;
-      gap: 0.75rem;
+      gap: 0.5rem;
     }
     
     .section-title .btn {
       width: 100%;
-      justify-content: center;
     }
     
-    /* Better FAB positioning */
     .fab.habit-fab {
-      bottom: 5.5rem;
-      right: 1rem;
-      width: 56px;
-      height: 56px;
-      font-size: 1.25rem;
-    }
-  }
-
-  /* Extra small devices */
-  @media (max-width: 480px) {
-    header.app-header {
-      padding: 0.5rem;
-    }
-    
-    .content {
-      padding: 0.5rem;
-      padding-bottom: 6rem;
-    }
-    
-    .card {
-      padding: 0.75rem;
-    }
-    
-    /* Better header actions */
-    .header-actions {
-      gap: 0.25rem;
-    }
-    
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-    }
-    
-    .user-avatar {
-      width: 36px;
-      height: 36px;
+      bottom: 4.5rem;
+      right: 0.75rem;
+      width: 44px;
+      height: 44px;
       font-size: 0.9rem;
-    }
-    
-    /* Improve history bars */
-    .history {
-      height: 25px;
-      gap: 1px;
-    }
-    
-    .hbar {
-      min-width: 2px;
-    }
-    
-    /* Better form inputs */
-    .form-row input, 
-    .form-row select, 
-    .form-row textarea {
-      font-size: 16px; /* Prevents zoom on iOS */
-      padding: 0.875rem;
-    }
-    
-    /* Improve modal actions */
-    .modal .actions {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    
-    .modal .actions .ghost,
-    .modal .actions .btn-modal {
-      width: 100%;
-      justify-content: center;
     }
   }
 
   /* ===== TOUCH IMPROVEMENTS ===== */
-  /* Better touch targets */
   .btn, .nav-item, .icon-btn {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 36px;
+    min-width: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  /* Prevent text size adjustment */
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
 
-  /* Improve scrolling */
   body {
     -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
   }
 
-  /* Better tap highlights */
   button, .btn, .nav-item, .icon-btn {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Improve focus for accessibility */
   button:focus-visible, 
   .btn:focus-visible, 
   .nav-item:focus-visible {
@@ -590,8 +586,6 @@
     outline-offset: 2px;
   }
 
-  /* ===== FIX FOR KEYBOARD ON MOBILE ===== */
-  /* Ensure content is visible when keyboard is open */
   .modal-backdrop {
     align-items: flex-end;
   }
@@ -601,22 +595,262 @@
       max-height: 90vh;
     }
   }
-
-  /* ===== IMPROVE LOADING STATES ===== */
-  .loading {
-    padding: 2rem;
-    text-align: center;
-  }
-
-  /* ===== BETTER EMPTY STATES ===== */
-  .empty, .empty-friends, .empty-status {
-    padding: 2rem 1rem;
-  }
-
-  .empty i, .empty-friends i, .empty-status i {
-    font-size: 2.5rem;
-  }
 </style>
+</head>
+<body>
+  <!-- Loading State -->
+  <div class="loading" id="loadingState">
+    <div class="logo">FF</div>
+    <h2>Loading FocusForge...</h2>
+    <p id="loadingText">Please wait while we check your authentication</p>
+  </div>
+
+  <!-- Username Setup Modal -->
+  <div class="modal-backdrop" id="usernameModal">
+    <div class="modal">
+      <h3 style="margin-bottom:1.5rem;">Choose Your Username</h3>
+      <div class="form-row">
+        <label for="usernameInput">Username</label>
+        <input id="usernameInput" placeholder="e.g., john_doe" maxlength="20" />
+        <div class="small-muted">3-20 characters (letters, numbers, underscore only)</div>
+      </div>
+      <div class="actions">
+        <button class="btn-modal" id="saveUsername">Save Username</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Details Modal -->
+  <div class="modal-backdrop" id="accountModal">
+    <div class="modal account-modal">
+      <div class="modal-header">
+        <h3>Account Details</h3>
+        <button class="ghost" id="closeAccountModal">Close</button>
+      </div>
+      
+      <div class="account-info">
+        <div class="account-field">
+          <div class="account-label">Username</div>
+          <div class="username-display">
+            <span class="account-value" id="accountUsername">username</span>
+            <button class="ghost" id="editUsernameBtn" style="margin-left:0.5rem;padding:0.25rem 0.5rem;font-size:0.8rem;">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+          </div>
+          <div class="edit-username">
+            <input type="text" id="usernameInputEdit" maxlength="20" />
+            <button class="btn-success" id="saveUsernameBtn" style="padding:0.5rem;">
+              <i class="fa-solid fa-check"></i>
+            </button>
+            <button class="ghost" id="cancelEditUsername" style="padding:0.5rem;">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="account-field">
+          <div class="account-label">Email</div>
+          <div class="account-value" id="accountEmail">user@email.com</div>
+        </div>
+        
+        <div class="account-field">
+          <div class="account-label">Member Since</div>
+          <div class="account-value" id="accountCreated">Recently</div>
+        </div>
+      </div>
+      
+      <div class="actions">
+        <button class="ghost" id="signOutAccountBtn">
+          <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app" id="mainApp" style="display: none;">
+    <header class="app-header">
+      <div class="title" style="display:flex;gap:0.75rem;align-items:center">
+        <div class="logo">FF</div>
+        <div>
+          <h1>FocusForge</h1>
+          <div class="sub">Habits • Friends • Status</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar" title="Account Details">U</div>
+          <!-- Text removed, only icon remains -->
+        </div>
+        <div class="icon-btn" id="refreshBtn" title="Refresh"><i class="fa-solid fa-rotate"></i></div>
+        <div class="icon-btn" id="signOutBtn" title="Sign Out"><i class="fa-solid fa-right-from-bracket"></i></div>
+      </div>
+    </header>
+
+    <div class="main">
+      <div class="content">
+        <!-- Habits Section -->
+        <section id="habitsSection" class="app-section active">
+          <div class="section-title">
+            <div>
+              <h2>Habits</h2>
+              <div class="small-muted">Daily check-ins & 30-day history</div>
+            </div>
+            <div class="chip" id="statsChip">0 habits • 0 today</div>
+          </div>
+          <div id="grid" class="grid"></div>
+          <div id="emptyState" class="empty">
+            <i class="fa-solid fa-list-check"></i>
+            <div style="font-size:1.1rem;margin-bottom:0.4rem;font-weight:600">No habits yet</div>
+            <div>Create your first habit — press + button below</div>
+          </div>
+        </section>
+
+        <!-- Friends Section -->
+        <section id="friendsSection" class="app-section">
+          <div class="section-title">
+            <div>
+              <h2>Friends</h2>
+              <div class="small-muted">Connect and chat with friends</div>
+            </div>
+            <button class="btn btn-mark" id="openAddFriend">
+              <i class="fa-solid fa-user-plus"></i> Add Friend
+            </button>
+          </div>
+
+          <div class="requests-container">
+            <div class="requests-title">Friend Requests</div>
+            <div class="requests-list"></div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom:0.75rem;font-size:0.9rem;">Your Friends</h3>
+            <div class="friends-list"></div>
+          </div>
+        </section>
+
+        <!-- Status Section -->
+        <section id="statusSection" class="app-section">
+          <div class="section-title">
+            <div>
+              <h2>Status</h2>
+              <div class="small-muted">Updates from your friends</div>
+            </div>
+            <button class="btn btn-mark" id="openStatusModal">
+              <i class="fa-solid fa-pen"></i> Post Update
+            </button>
+          </div>
+          <div class="feed"></div>
+        </section>
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <div>Made with ❤️</div>
+      <div class="small-muted" id="usernameFooter">@<span id="navUsername">username</span></div>
+    </footer>
+
+    <nav>
+      <div class="bottom-nav">
+        <div class="nav-item active" data-target="habitsSection"><i class="fa-solid fa-list-check"></i><span>Habits</span></div>
+        <div class="nav-item" data-target="friendsSection"><i class="fa-solid fa-user-friends"></i><span>Friends</span></div>
+        <div class="nav-item" data-target="statusSection"><i class="fa-solid fa-circle-plus"></i><span>Status</span></div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- FAB for Habits (Only visible in Habits section) -->
+  <button class="fab habit-fab" id="openAdd" title="Add habit" style="display: none;"><i class="fa-solid fa-plus"></i></button>
+
+  <!-- Habit Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modalTitle" style="margin-bottom:1.5rem;">Add Habit</h3>
+      <div class="form-row">
+        <label for="habitName">Habit Name</label>
+        <input id="habitName" placeholder="e.g., Morning run" maxlength="80" />
+      </div>
+      <div class="form-row">
+        <label for="habitNote">Note (Optional)</label>
+        <input id="habitNote" placeholder="Short description" maxlength="120" />
+      </div>
+      <div class="form-row">
+        <label for="habitColor">Color Theme</label>
+        <select id="habitColor">
+          <option value="#60a5fa">Blue</option>
+          <option value="#f97316">Orange</option>
+          <option value="#34d399">Green</option>
+          <option value="#f472b6">Pink</option>
+          <option value="#7c3aed">Purple</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button class="ghost" id="cancelModal">Cancel</button>
+        <button class="btn-modal" id="saveHabit">Save Habit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Friend Modal -->
+  <div class="modal-backdrop" id="addFriendModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Friend</h3>
+        <button class="ghost" id="closeAddFriend">Close</button>
+      </div>
+      <div class="form-row">
+        <label for="searchFriendInput">Search by Username</label>
+        <div style="display:flex;gap:0.5rem;">
+          <input id="searchFriendInput" placeholder="Enter username..." />
+          <button class="btn btn-mark" id="searchFriendBtn">Search</button>
+        </div>
+      </div>
+      <div id="searchResults" style="min-height:100px;margin-top:1rem;"></div>
+    </div>
+  </div>
+
+  <!-- Chat Modal -->
+  <div class="modal-backdrop" id="chatModal">
+    <div class="modal chat-modal">
+      <div class="modal-header">
+        <h3 id="currentChatTitle">Chat</h3>
+        <button class="ghost" id="closeChatModal">Close</button>
+      </div>
+      <div class="messages-container" id="messagesContainer"></div>
+      <div class="chat-input-container">
+        <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." />
+        <button class="send-btn" id="sendMessageBtn">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Modal -->
+  <div class="modal-backdrop" id="statusModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Post Status Update</h3>
+        <button class="ghost" id="closeStatusModal">Close</button>
+      </div>
+      <div class="form-row">
+        <label for="statusInput">What's on your mind?</label>
+        <textarea id="statusInput" placeholder="Share your progress, motivation, or ask for advice..." rows="4" maxlength="280"></textarea>
+        <div class="small-muted" style="text-align:right">Max 280 characters</div>
+      </div>
+      <div class="actions">
+        <button class="ghost" id="closeStatusModal2">Cancel</button>
+        <button class="btn-modal" id="postStatusBtn">Post Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- More Menu -->
+  <div class="more-menu" id="moreMenu">
+    <button id="editBtn"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+    <button id="deleteBtn"><i class="fa-solid fa-trash"></i> Delete</button>
+  </div>
+
 <script type="module">
   // Import Firebase modules
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -1488,7 +1722,7 @@
         const streak = computeStreak(h.history);
         const pct = Math.min(100, streak);
         const doneToday = (h.history || []).includes(todayStr());
-        const size = 60, stroke = 6, radius = (size - stroke)/2;
+        const size = 36, stroke = 4, radius = (size - stroke)/2;
         const circumference = 2*Math.PI*radius;
         const offset = circumference * (1 - pct/100);
 
@@ -1509,7 +1743,7 @@
             </svg>
             <div class="center">
               <div style="font-weight:800">${streak}</div>
-              <div style="font-size:10px;color:var(--muted)">days</div>
+              <div style="font-size:8px;color:var(--muted)">days</div>
             </div>
           </div>
           <div class="meta">
@@ -1519,7 +1753,7 @@
               <div class="chip">🔥 ${streak} streak</div>
               <div class="chip">${h.history.length} total</div>
             </div>
-            <div class="history" aria-hidden="true"></div>
+            <!-- History container removed - no more bars at the bottom -->
           </div>
           <div class="habit-actions">
             <button class="btn ${doneToday ? '' : 'btn-mark'} mark-btn" data-id="${h.id}">${doneToday ? '<i class="fa-solid fa-check"></i> Done' : '<i class="fa-solid fa-circle"></i> Mark'}</button>
@@ -1528,18 +1762,6 @@
         `;
 
         grid.appendChild(card);
-        const historyContainer = card.querySelector('.history');
-        const last30 = lastNDates(30);
-        const set = new Set(h.history || []);
-        last30.forEach(d => {
-          const bar = document.createElement('div');
-          bar.className = 'hbar' + (set.has(d) ? ' active' : '');
-          const age = daysBetween(d, todayStr());
-          const height = set.has(d) ? Math.max(8, 20 - age*0.3) : 4;
-          bar.style.height = height + 'px';
-          if(set.has(d)) bar.style.background = h.color;
-          historyContainer.appendChild(bar);
-        });
 
         card.querySelector('.mark-btn').addEventListener('click', () => toggleToday(h.id));
         card.querySelector('[data-more]').addEventListener('click', (e) => openMoreMenu(e, h.id));
@@ -1635,7 +1857,7 @@
       e.stopPropagation();
       openMenuFor = id;
       const rect = e.currentTarget.getBoundingClientRect();
-      moreMenu.style.left = (rect.left - 120) + 'px';
+      moreMenu.style.left = (rect.left - 100) + 'px';
       moreMenu.style.top = (rect.bottom + 5) + 'px';
       moreMenu.style.display = 'block';
     }
@@ -1692,259 +1914,5 @@
     render();
   }
 </script>
-</head>
-<body>
-  <!-- Loading State -->
-  <div class="loading" id="loadingState">
-    <div class="logo">FF</div>
-    <h2>Loading FocusForge...</h2>
-    <p id="loadingText">Please wait while we check your authentication</p>
-  </div>
-
-  <!-- Username Setup Modal -->
-  <div class="modal-backdrop" id="usernameModal">
-    <div class="modal">
-      <h3 style="margin-bottom:1.5rem;">Choose Your Username</h3>
-      <div class="form-row">
-        <label for="usernameInput">Username</label>
-        <input id="usernameInput" placeholder="e.g., john_doe" maxlength="20" />
-        <div class="small-muted">3-20 characters (letters, numbers, underscore only)</div>
-      </div>
-      <div class="actions">
-        <button class="btn-modal" id="saveUsername">Save Username</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Account Details Modal -->
-  <div class="modal-backdrop" id="accountModal">
-    <div class="modal account-modal">
-      <div class="modal-header">
-        <h3>Account Details</h3>
-        <button class="ghost" id="closeAccountModal">Close</button>
-      </div>
-      
-      <div class="account-info">
-        <div class="account-field">
-          <div class="account-label">Username</div>
-          <div class="username-display">
-            <span class="account-value" id="accountUsername">username</span>
-            <button class="ghost" id="editUsernameBtn" style="margin-left:0.5rem;padding:0.25rem 0.5rem;font-size:0.8rem;">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-          </div>
-          <div class="edit-username">
-            <input type="text" id="usernameInputEdit" maxlength="20" />
-            <button class="btn-success" id="saveUsernameBtn" style="padding:0.5rem;">
-              <i class="fa-solid fa-check"></i>
-            </button>
-            <button class="ghost" id="cancelEditUsername" style="padding:0.5rem;">
-              <i class="fa-solid fa-times"></i>
-            </button>
-          </div>
-        </div>
-        
-        <div class="account-field">
-          <div class="account-label">Email</div>
-          <div class="account-value" id="accountEmail">user@email.com</div>
-        </div>
-        
-        <div class="account-field">
-          <div class="account-label">Member Since</div>
-          <div class="account-value" id="accountCreated">Recently</div>
-        </div>
-      </div>
-      
-      <div class="actions">
-        <button class="ghost" id="signOutAccountBtn">
-          <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main App -->
-  <div class="app" id="mainApp" style="display: none;">
-    <header class="app-header">
-      <div class="title" style="display:flex;gap:1rem;align-items:center">
-        <div class="logo">FF</div>
-        <div>
-          <h1>FocusForge</h1>
-          <div class="sub">Habits • Friends • Status</div>
-        </div>
-      </div>
-      <div class="header-actions">
-        <div class="user-info">
-          <div class="user-avatar" id="userAvatar" title="Account Details">U</div>
-          <!-- Text removed, only icon remains -->
-        </div>
-        <div class="icon-btn" id="refreshBtn" title="Refresh"><i class="fa-solid fa-rotate"></i></div>
-        <div class="icon-btn" id="signOutBtn" title="Sign Out"><i class="fa-solid fa-right-from-bracket"></i></div>
-      </div>
-    </header>
-
-    <div class="main">
-      <div class="content">
-        <!-- Habits Section -->
-        <section id="habitsSection" class="app-section active">
-          <div class="section-title">
-            <div>
-              <h2>Habits</h2>
-              <div class="small-muted">Daily check-ins & 30-day history</div>
-            </div>
-            <div class="chip" id="statsChip">0 habits • 0 today</div>
-          </div>
-          <div id="grid" class="grid"></div>
-          <div id="emptyState" class="empty">
-            <i class="fa-solid fa-list-check"></i>
-            <div style="font-size:1.25rem;margin-bottom:0.5rem;font-weight:600">No habits yet</div>
-            <div>Create your first habit — press + button below</div>
-          </div>
-        </section>
-
-        <!-- Friends Section -->
-        <section id="friendsSection" class="app-section">
-          <div class="section-title">
-            <div>
-              <h2>Friends</h2>
-              <div class="small-muted">Connect and chat with friends</div>
-            </div>
-            <button class="btn btn-mark" id="openAddFriend">
-              <i class="fa-solid fa-user-plus"></i> Add Friend
-            </button>
-          </div>
-
-          <div class="requests-container">
-            <div class="requests-title">Friend Requests</div>
-            <div class="requests-list"></div>
-          </div>
-
-          <div>
-            <h3 style="margin-bottom:1rem;">Your Friends</h3>
-            <div class="friends-list"></div>
-          </div>
-        </section>
-
-        <!-- Status Section -->
-        <section id="statusSection" class="app-section">
-          <div class="section-title">
-            <div>
-              <h2>Status</h2>
-              <div class="small-muted">Updates from your friends</div>
-            </div>
-            <button class="btn btn-mark" id="openStatusModal">
-              <i class="fa-solid fa-pen"></i> Post Update
-            </button>
-          </div>
-          <div class="feed"></div>
-        </section>
-      </div>
-    </div>
-
-    <footer class="app-footer">
-      <div>Made with ❤️</div>
-      <div class="small-muted" id="usernameFooter">@<span id="navUsername">username</span></div>
-    </footer>
-
-    <nav>
-      <div class="bottom-nav">
-        <div class="nav-item active" data-target="habitsSection"><i class="fa-solid fa-list-check"></i><span>Habits</span></div>
-        <div class="nav-item" data-target="friendsSection"><i class="fa-solid fa-user-friends"></i><span>Friends</span></div>
-        <div class="nav-item" data-target="statusSection"><i class="fa-solid fa-circle-plus"></i><span>Status</span></div>
-      </div>
-    </nav>
-  </div>
-
-  <!-- FAB for Habits (Only visible in Habits section) -->
-  <button class="fab habit-fab" id="openAdd" title="Add habit" style="display: none;"><i class="fa-solid fa-plus"></i></button>
-
-  <!-- Habit Modal -->
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal" role="dialog" aria-modal="true">
-      <h3 id="modalTitle" style="margin-bottom:1.5rem;">Add Habit</h3>
-      <div class="form-row">
-        <label for="habitName">Habit Name</label>
-        <input id="habitName" placeholder="e.g., Morning run" maxlength="80" />
-      </div>
-      <div class="form-row">
-        <label for="habitNote">Note (Optional)</label>
-        <input id="habitNote" placeholder="Short description" maxlength="120" />
-      </div>
-      <div class="form-row">
-        <label for="habitColor">Color Theme</label>
-        <select id="habitColor">
-          <option value="#60a5fa">Blue</option>
-          <option value="#f97316">Orange</option>
-          <option value="#34d399">Green</option>
-          <option value="#f472b6">Pink</option>
-          <option value="#7c3aed">Purple</option>
-        </select>
-      </div>
-      <div class="actions">
-        <button class="ghost" id="cancelModal">Cancel</button>
-        <button class="btn-modal" id="saveHabit">Save Habit</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add Friend Modal -->
-  <div class="modal-backdrop" id="addFriendModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Add Friend</h3>
-        <button class="ghost" id="closeAddFriend">Close</button>
-      </div>
-      <div class="form-row">
-        <label for="searchFriendInput">Search by Username</label>
-        <div style="display:flex;gap:0.5rem;">
-          <input id="searchFriendInput" placeholder="Enter username..." />
-          <button class="btn btn-mark" id="searchFriendBtn">Search</button>
-        </div>
-      </div>
-      <div id="searchResults" style="min-height:100px;margin-top:1rem;"></div>
-    </div>
-  </div>
-
-  <!-- Chat Modal -->
-  <div class="modal-backdrop" id="chatModal">
-    <div class="modal chat-modal">
-      <div class="modal-header">
-        <h3 id="currentChatTitle">Chat</h3>
-        <button class="ghost" id="closeChatModal">Close</button>
-      </div>
-      <div class="messages-container" id="messagesContainer"></div>
-      <div class="chat-input-container">
-        <input type="text" class="chat-input" id="messageInput" placeholder="Type a message..." />
-        <button class="send-btn" id="sendMessageBtn">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Status Modal -->
-  <div class="modal-backdrop" id="statusModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Post Status Update</h3>
-        <button class="ghost" id="closeStatusModal">Close</button>
-      </div>
-      <div class="form-row">
-        <label for="statusInput">What's on your mind?</label>
-        <textarea id="statusInput" placeholder="Share your progress, motivation, or ask for advice..." rows="4" maxlength="280"></textarea>
-        <div class="small-muted" style="text-align:right">Max 280 characters</div>
-      </div>
-      <div class="actions">
-        <button class="ghost" id="closeStatusModal2">Cancel</button>
-        <button class="btn-modal" id="postStatusBtn">Post Update</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- More Menu -->
-  <div class="more-menu" id="moreMenu">
-    <button id="editBtn"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-    <button id="deleteBtn"><i class="fa-solid fa-trash"></i> Delete</button>
-  </div>
 </body>
 </html>
