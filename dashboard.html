@@ -1240,7 +1240,10 @@
     // Search for users by username
     async function searchUsers() {
       const searchTerm = searchFriendInput.value.trim().toLowerCase();
-      if (!searchTerm) return;
+      if (!searchTerm) {
+        searchResults.innerHTML = '<div class="small-muted">Please enter a username to search</div>';
+        return;
+      }
 
       searchResults.innerHTML = '<div class="small-muted">Searching...</div>';
 
@@ -1267,22 +1270,38 @@
           foundUsers = true;
           const resultItem = document.createElement('div');
           resultItem.className = 'search-result-item';
+          
+          // Check if already friends or request pending
+          const isFriend = false; // We'll check this properly later
+          const isRequestPending = false;
+          
+          let buttonHtml = '';
+          if (isFriend) {
+            buttonHtml = '<button class="btn btn-success" disabled><i class="fa-solid fa-check"></i> Friends</button>';
+          } else if (isRequestPending) {
+            buttonHtml = '<button class="btn" disabled><i class="fa-solid fa-clock"></i> Request Sent</button>';
+          } else {
+            buttonHtml = `<button class="btn btn-mark btn-add-friend" data-user-id="${docSnap.id}">
+              <i class="fa-solid fa-user-plus"></i> Add
+            </button>`;
+          }
+          
           resultItem.innerHTML = `
             <div class="friend-avatar">${userData.username?.charAt(0).toUpperCase() || 'U'}</div>
             <div style="flex:1;min-width:0;">
               <strong>@${userData.username || 'user'}</strong>
               <div class="small-muted">${userData.email || 'No email'}</div>
             </div>
-            <button class="btn btn-mark btn-add-friend" data-user-id="${docSnap.id}">
-              <i class="fa-solid fa-user-plus"></i> Add
-            </button>
+            ${buttonHtml}
           `;
           searchResults.appendChild(resultItem);
 
-          resultItem.querySelector('.btn-add-friend').addEventListener('click', async (e) => {
-            const targetUserId = e.target.closest('.btn-add-friend').dataset.userId;
-            await sendFriendRequest(targetUserId);
-          });
+          if (!isFriend && !isRequestPending) {
+            resultItem.querySelector('.btn-add-friend').addEventListener('click', async (e) => {
+              const targetUserId = e.target.closest('.btn-add-friend').dataset.userId;
+              await sendFriendRequest(targetUserId);
+            });
+          }
         });
 
         if (!foundUsers) {
@@ -1345,15 +1364,10 @@
     async function declineFriendRequest(requesterId) {
       try {
         const currentUserRef = doc(db, 'users', user.uid);
-        const requesterRef = doc(db, 'users', requesterId);
 
         // Remove from requests
         await updateDoc(currentUserRef, {
           friendRequests: arrayRemove(requesterId)
-        });
-
-        await updateDoc(requesterRef, {
-          sentRequests: arrayRemove(user.uid)
         });
 
         alert('Friend request declined');
@@ -1383,6 +1397,10 @@
       }
       
       try {
+        // First, ensure the chat document exists
+        const chatDocRef = doc(db, 'chats', chatId);
+        
+        // Set up real-time listener for messages
         const q = query(
           collection(db, 'chats', chatId, 'messages'),
           orderBy('timestamp', 'asc')
@@ -1438,12 +1456,17 @@
         // Generate unique chat ID
         const chatId = [user.uid, currentChatFriend.id].sort().join('_');
         
+        // Ensure chat document exists
+        const chatDocRef = doc(db, 'chats', chatId);
+        
+        // Add message to subcollection
         await addDoc(collection(db, 'chats', chatId, 'messages'), {
           text: text,
           senderId: user.uid,
           senderName: currentUsername,
           timestamp: serverTimestamp()
         });
+        
         messageInput.value = '';
       } catch (error) {
         console.error('Error sending message:', error);
