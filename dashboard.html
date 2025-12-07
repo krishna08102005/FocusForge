@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>FocusForge — Habits & Friends</title>
+<title>FocusForge — Dashboard</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root{
@@ -840,7 +840,7 @@
   </div>
 
 <script type="module">
-  // Import Firebase modules
+  // ===== FIREBASE SETUP =====
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import { 
     getAuth, 
@@ -885,31 +885,29 @@
   let currentUser = null;
   let currentUsername = '';
 
-  // Check authentication state
+  // ===== FIREBASE AUTH LISTENER =====
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUser = user;
+      console.log('✅ User authenticated:', user.email);
       
       try {
-        // Initialize or get user profile
         await initializeUserProfile(user);
         
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('mainApp').style.display = 'flex';
         
-        // Update UI with user info
         document.getElementById('userAvatar').textContent = currentUsername.charAt(0).toUpperCase();
         document.getElementById('navUsername').textContent = currentUsername;
         document.getElementById('accountUsername').textContent = currentUsername;
         document.getElementById('accountEmail').textContent = user.email;
         
-        // Initialize all apps
         initializeHabitApp(user.email);
         initializeFriendsApp(user);
         initializeStatusApp(user);
         
-        // Setup account modal
         setupAccountModal();
+        
       } catch (error) {
         console.error('Error initializing app:', error);
         document.getElementById('loadingText').textContent = 'Error loading app. Please refresh.';
@@ -922,108 +920,7 @@
     }
   });
 
-  // Setup account modal functionality
-  function setupAccountModal() {
-    const accountModal = document.getElementById('accountModal');
-    const userAvatar = document.getElementById('userAvatar');
-    const closeAccountModal = document.getElementById('closeAccountModal');
-    const editUsernameBtn = document.getElementById('editUsernameBtn');
-    const saveUsernameBtn = document.getElementById('saveUsernameBtn');
-    const cancelEditUsername = document.getElementById('cancelEditUsername');
-    const usernameInput = document.getElementById('usernameInputEdit');
-    const usernameDisplay = document.getElementById('accountUsername');
-    const signOutAccountBtn = document.getElementById('signOutAccountBtn');
-
-    // Open account modal when clicking user avatar
-    userAvatar.addEventListener('click', () => {
-      accountModal.style.display = 'flex';
-    });
-
-    // Close account modal
-    closeAccountModal.addEventListener('click', () => {
-      accountModal.style.display = 'none';
-      cancelEdit(); // Reset edit state
-    });
-
-    // Edit username
-    editUsernameBtn.addEventListener('click', () => {
-      document.querySelector('.username-display').style.display = 'none';
-      document.querySelector('.edit-username').style.display = 'flex';
-      usernameInput.value = currentUsername;
-      usernameInput.focus();
-    });
-
-    // Save username
-    saveUsernameBtn.addEventListener('click', async () => {
-      const newUsername = usernameInput.value.trim().toLowerCase();
-      if (!newUsername) {
-        alert('Please enter a username');
-        return;
-      }
-      
-      if (!/^[a-z0-9_]{3,20}$/.test(newUsername)) {
-        alert('Username must be 3-20 characters (letters, numbers, underscore only)');
-        return;
-      }
-      
-      if (newUsername === currentUsername) {
-        cancelEdit();
-        return;
-      }
-      
-      try {
-        // Check if username is available
-        const usernameQuery = query(collection(db, 'users'), where('username', '==', newUsername));
-        const usernameSnap = await getDocs(usernameQuery);
-        
-        if (!usernameSnap.empty) {
-          alert('Username already taken. Please choose another one.');
-          return;
-        }
-        
-        // Update username in database
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-          username: newUsername,
-          displayName: newUsername
-        });
-        
-        // Update local state
-        currentUsername = newUsername;
-        document.getElementById('userAvatar').textContent = newUsername.charAt(0).toUpperCase();
-        document.getElementById('navUsername').textContent = newUsername;
-        usernameDisplay.textContent = newUsername;
-        
-        cancelEdit();
-        alert('Username updated successfully!');
-      } catch (error) {
-        console.error('Error updating username:', error);
-        alert('Error updating username. Please try again.');
-      }
-    });
-
-    // Cancel edit
-    cancelEditUsername.addEventListener('click', cancelEdit);
-
-    // Sign out from account modal
-    signOutAccountBtn.addEventListener('click', async () => {
-      if (confirm('Are you sure you want to sign out?')) {
-        try {
-          await signOut(auth);
-          window.location.href = 'signin.html';
-        } catch (error) {
-          console.error('Error signing out:', error);
-        }
-      }
-    });
-
-    function cancelEdit() {
-      document.querySelector('.username-display').style.display = 'flex';
-      document.querySelector('.edit-username').style.display = 'none';
-    }
-  }
-
-  // Initialize user profile with username
+  // ===== USER PROFILE SETUP =====
   async function initializeUserProfile(user) {
     const userRef = doc(db, 'users', user.uid);
     
@@ -1031,7 +928,7 @@
       const userSnap = await getDoc(userRef);
       
       if (!userSnap.exists()) {
-        // New user - create profile with username
+        console.log('👤 New user detected');
         const usernameModal = document.getElementById('usernameModal');
         usernameModal.style.display = 'flex';
         
@@ -1048,7 +945,6 @@
           }
           
           try {
-            // Check if username is available
             const usernameQuery = query(collection(db, 'users'), where('username', '==', username));
             const usernameSnap = await getDocs(usernameQuery);
             
@@ -1069,26 +965,118 @@
             });
             
             usernameModal.style.display = 'none';
-            location.reload(); // Refresh to load everything with username
+            alert('Profile created! Reloading...');
+            location.reload();
           } catch (error) {
             console.error('Error creating profile:', error);
-            alert('Error creating profile. Please try again.');
+            alert('Error creating profile: ' + error.message);
           }
         });
         
       } else {
-        // Existing user
         const userData = userSnap.data();
         currentUsername = userData.username || user.email.split('@')[0];
+        console.log('👤 Existing user loaded:', currentUsername);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
-      // Fallback: use email as username
       currentUsername = user.email.split('@')[0];
     }
   }
 
-  // Sign out functionality (from header)
+  // ===== ACCOUNT MODAL =====
+  function setupAccountModal() {
+    const accountModal = document.getElementById('accountModal');
+    const userAvatar = document.getElementById('userAvatar');
+    const closeAccountModal = document.getElementById('closeAccountModal');
+    const editUsernameBtn = document.getElementById('editUsernameBtn');
+    const saveUsernameBtn = document.getElementById('saveUsernameBtn');
+    const cancelEditUsername = document.getElementById('cancelEditUsername');
+    const usernameInput = document.getElementById('usernameInputEdit');
+    const usernameDisplay = document.getElementById('accountUsername');
+    const signOutAccountBtn = document.getElementById('signOutAccountBtn');
+
+    userAvatar.addEventListener('click', () => {
+      accountModal.style.display = 'flex';
+    });
+
+    closeAccountModal.addEventListener('click', () => {
+      accountModal.style.display = 'none';
+      cancelEdit();
+    });
+
+    editUsernameBtn.addEventListener('click', () => {
+      document.querySelector('.username-display').style.display = 'none';
+      document.querySelector('.edit-username').style.display = 'flex';
+      usernameInput.value = currentUsername;
+      usernameInput.focus();
+    });
+
+    saveUsernameBtn.addEventListener('click', async () => {
+      const newUsername = usernameInput.value.trim().toLowerCase();
+      if (!newUsername) {
+        alert('Please enter a username');
+        return;
+      }
+      
+      if (!/^[a-z0-9_]{3,20}$/.test(newUsername)) {
+        alert('Username must be 3-20 characters (letters, numbers, underscore only)');
+        return;
+      }
+      
+      if (newUsername === currentUsername) {
+        cancelEdit();
+        return;
+      }
+      
+      try {
+        const usernameQuery = query(collection(db, 'users'), where('username', '==', newUsername));
+        const usernameSnap = await getDocs(usernameQuery);
+        
+        if (!usernameSnap.empty) {
+          alert('Username already taken. Please choose another one.');
+          return;
+        }
+        
+        const userRef = doc(db, 'users', currentUser.uid);
+        await updateDoc(userRef, {
+          username: newUsername,
+          displayName: newUsername
+        });
+        
+        currentUsername = newUsername;
+        document.getElementById('userAvatar').textContent = newUsername.charAt(0).toUpperCase();
+        document.getElementById('navUsername').textContent = newUsername;
+        usernameDisplay.textContent = newUsername;
+        
+        cancelEdit();
+        alert('Username updated successfully!');
+      } catch (error) {
+        console.error('Error updating username:', error);
+        alert('Error updating username. Please try again.');
+      }
+    });
+
+    cancelEditUsername.addEventListener('click', cancelEdit);
+
+    signOutAccountBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to sign out?')) {
+        try {
+          await signOut(auth);
+          window.location.href = 'signin.html';
+        } catch (error) {
+          console.error('Error signing out:', error);
+        }
+      }
+    });
+
+    function cancelEdit() {
+      document.querySelector('.username-display').style.display = 'flex';
+      document.querySelector('.edit-username').style.display = 'none';
+    }
+  }
+
+  // ===== SIGN OUT =====
   document.getElementById('signOutBtn').addEventListener('click', async () => {
     if (confirm('Are you sure you want to sign out?')) {
       try {
@@ -1100,9 +1088,9 @@
     }
   });
 
-  // ===== FIXED FRIENDS APP =====
+  // ===== WORKING FRIENDS APP =====
   function initializeFriendsApp(user) {
-    console.log('Initializing Friends App for user:', user.uid);
+    console.log('🚀 Starting Friends App');
     
     const friendsList = document.querySelector('.friends-list');
     const requestsList = document.querySelector('.requests-list');
@@ -1113,589 +1101,312 @@
     const searchFriendBtn = document.getElementById('searchFriendBtn');
     const searchResults = document.getElementById('searchResults');
     
-    // Current user ID
     const currentUserId = user.uid;
-    let currentUsername = '';
     
-    // Get current username
-    const userRef = doc(db, 'users', currentUserId);
-    getDoc(userRef).then(userSnap => {
-        if (userSnap.exists()) {
-            currentUsername = userSnap.data().username || user.email.split('@')[0];
-        }
-    }).catch(error => {
-        console.error('Error getting user data:', error);
-        currentUsername = user.email.split('@')[0];
-    });
-
     // 1. SEND FRIEND REQUEST
     async function sendFriendRequest(targetUserId) {
-        try {
-            console.log('Sending friend request from', currentUserId, 'to', targetUserId);
-            
-            // Get user references
-            const currentUserRef = doc(db, 'users', currentUserId);
-            const targetUserRef = doc(db, 'users', targetUserId);
-            
-            // Get current data
-            const [currentUserSnap, targetUserSnap] = await Promise.all([
-                getDoc(currentUserRef),
-                getDoc(targetUserRef)
-            ]);
-            
-            if (!targetUserSnap.exists()) {
-                alert('User not found');
-                return;
-            }
-            
-            const currentUserData = currentUserSnap.data();
-            const targetUserData = targetUserSnap.data();
-            
-            // Check if already friends
-            if (currentUserData.friends && currentUserData.friends.includes(targetUserId)) {
-                alert('You are already friends with this user');
-                return;
-            }
-            
-            // Check if request already sent
-            if (currentUserData.sentRequests && currentUserData.sentRequests.includes(targetUserId)) {
-                alert('Friend request already sent');
-                return;
-            }
-            
-            // Check if they already sent you a request
-            if (currentUserData.friendRequests && currentUserData.friendRequests.includes(targetUserId)) {
-                if (confirm('This user has already sent you a friend request. Accept it?')) {
-                    await acceptFriendRequest(targetUserId);
-                }
-                return;
-            }
-            
-            // Use Firebase array operations
-            await updateDoc(currentUserRef, {
-                sentRequests: arrayUnion(targetUserId)
-            });
-            
-            await updateDoc(targetUserRef, {
-                friendRequests: arrayUnion(currentUserId)
-            });
-            
-            console.log('Friend request sent successfully');
-            alert('Friend request sent successfully!');
-            addFriendModal.style.display = 'none';
-            
-            // Refresh search results
-            searchUsers();
-            
-        } catch (error) {
-            console.error('Error sending friend request:', error);
-            alert('Error sending friend request: ' + error.message);
-        }
+      console.log('📤 Sending request to:', targetUserId);
+      
+      try {
+        const currentUserRef = doc(db, 'users', currentUserId);
+        const targetUserRef = doc(db, 'users', targetUserId);
+        
+        const batch = writeBatch(db);
+        
+        batch.update(currentUserRef, {
+          sentRequests: arrayUnion(targetUserId)
+        });
+        
+        batch.update(targetUserRef, {
+          friendRequests: arrayUnion(currentUserId)
+        });
+        
+        await batch.commit();
+        
+        alert('✅ Friend request sent!');
+        addFriendModal.style.display = 'none';
+        loadFriendsData();
+        
+      } catch (error) {
+        console.error('❌ Send error:', error);
+        alert('Error: ' + error.message);
+      }
     }
-
-    // 2. ACCEPT FRIEND REQUEST
+    
+    // 2. ACCEPT REQUEST
     async function acceptFriendRequest(requesterId) {
-        try {
-            console.log('Accepting friend request from', requesterId);
-            
-            const currentUserRef = doc(db, 'users', currentUserId);
-            const requesterRef = doc(db, 'users', requesterId);
-            
-            // Use batch write for atomic operation
-            const batch = writeBatch(db);
-            
-            // Remove from requests and add to friends for current user
-            batch.update(currentUserRef, {
-                friends: arrayUnion(requesterId),
-                friendRequests: arrayRemove(requesterId)
-            });
-            
-            // Remove from sent requests and add to friends for requester
-            batch.update(requesterRef, {
-                friends: arrayUnion(currentUserId),
-                sentRequests: arrayRemove(currentUserId)
-            });
-            
-            await batch.commit();
-            
-            console.log('Friend request accepted');
-            alert('Friend request accepted!');
-            
-            // Refresh display
-            loadFriendsData();
-            
-        } catch (error) {
-            console.error('Error accepting friend request:', error);
-            alert('Error accepting friend request: ' + error.message);
-        }
+      console.log('✅ Accepting from:', requesterId);
+      
+      try {
+        const batch = writeBatch(db);
+        const currentRef = doc(db, 'users', currentUserId);
+        const requesterRef = doc(db, 'users', requesterId);
+        
+        batch.update(currentRef, {
+          friendRequests: arrayRemove(requesterId),
+          friends: arrayUnion(requesterId)
+        });
+        
+        batch.update(requesterRef, {
+          sentRequests: arrayRemove(currentUserId),
+          friends: arrayUnion(currentUserId)
+        });
+        
+        await batch.commit();
+        alert('✅ Friend added!');
+        loadFriendsData();
+        
+      } catch (error) {
+        console.error('❌ Accept error:', error);
+        alert('Error: ' + error.message);
+      }
     }
-
-    // 3. DECLINE FRIEND REQUEST
+    
+    // 3. DECLINE REQUEST
     async function declineFriendRequest(requesterId) {
-        try {
-            console.log('Declining friend request from', requesterId);
-            
-            const currentUserRef = doc(db, 'users', currentUserId);
-            const requesterRef = doc(db, 'users', requesterId);
-            
-            // Use batch write
-            const batch = writeBatch(db);
-            
-            // Remove from current user's friend requests
-            batch.update(currentUserRef, {
-                friendRequests: arrayRemove(requesterId)
-            });
-            
-            // Remove from requester's sent requests
-            batch.update(requesterRef, {
-                sentRequests: arrayRemove(currentUserId)
-            });
-            
-            await batch.commit();
-            
-            console.log('Friend request declined');
-            alert('Friend request declined');
-            
-            // Refresh display
-            loadFriendsData();
-            
-        } catch (error) {
-            console.error('Error declining friend request:', error);
-            alert('Error declining friend request: ' + error.message);
-        }
-    }
-
-    // 4. REMOVE FRIEND
-    async function removeFriend(friendId) {
-        if (!confirm('Are you sure you want to remove this friend?')) return;
+      try {
+        const batch = writeBatch(db);
+        const currentRef = doc(db, 'users', currentUserId);
+        const requesterRef = doc(db, 'users', requesterId);
         
-        try {
-            console.log('Removing friend:', friendId);
-            
-            const currentUserRef = doc(db, 'users', currentUserId);
-            const friendRef = doc(db, 'users', friendId);
-            
-            // Use batch write
-            const batch = writeBatch(db);
-            
-            // Remove from both users' friends lists
-            batch.update(currentUserRef, {
-                friends: arrayRemove(friendId)
-            });
-            
-            batch.update(friendRef, {
-                friends: arrayRemove(currentUserId)
-            });
-            
-            await batch.commit();
-            
-            console.log('Friend removed');
-            alert('Friend removed');
-            
-            // Refresh display
-            loadFriendsData();
-            
-        } catch (error) {
-            console.error('Error removing friend:', error);
-            alert('Error removing friend: ' + error.message);
-        }
+        batch.update(currentRef, {
+          friendRequests: arrayRemove(requesterId)
+        });
+        
+        batch.update(requesterRef, {
+          sentRequests: arrayRemove(currentUserId)
+        });
+        
+        await batch.commit();
+        alert('Request declined');
+        loadFriendsData();
+        
+      } catch (error) {
+        console.error('Decline error:', error);
+        alert('Error: ' + error.message);
+      }
     }
-
-    // 5. SEARCH USERS
+    
+    // 4. SEARCH USERS (FIXED - NO DUPLICATES)
     async function searchUsers() {
-        const searchTerm = searchFriendInput.value.trim().toLowerCase();
-        if (!searchTerm) {
-            searchResults.innerHTML = '<div class="small-muted">Please enter a username to search</div>';
-            return;
-        }
+      const searchTerm = searchFriendInput.value.trim().toLowerCase();
+      if (!searchTerm) {
+        searchResults.innerHTML = '<div class="small-muted">Enter username</div>';
+        return;
+      }
+      
+      searchResults.innerHTML = '<div class="small-muted">Searching...</div>';
+      
+      try {
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        searchResults.innerHTML = '';
         
-        searchResults.innerHTML = '<div class="small-muted">Searching...</div>';
+        let found = false;
+        const seenUsers = new Set();
         
-        try {
-            // Get all users
-            const usersSnapshot = await getDocs(collection(db, 'users'));
-            searchResults.innerHTML = '';
-            
-            let foundUsers = false;
-            
-            // Get current user data to check existing relationships
-            const currentUserRef = doc(db, 'users', currentUserId);
-            const currentUserSnap = await getDoc(currentUserRef);
-            const currentUserData = currentUserSnap.exists() ? currentUserSnap.data() : {};
-            const currentFriends = currentUserData.friends || [];
-            const currentSentRequests = currentUserData.sentRequests || [];
-            const currentFriendRequests = currentUserData.friendRequests || [];
-            
-            usersSnapshot.forEach((docSnap) => {
-                const userData = docSnap.data();
-                const userId = docSnap.id;
-                
-                // Skip current user
-                if (userId === currentUserId) return;
-                
-                // Check if username matches search
-                if (userData.username && userData.username.toLowerCase().includes(searchTerm)) {
-                    foundUsers = true;
-                    
-                    const isFriend = currentFriends.includes(userId);
-                    const requestSent = currentSentRequests.includes(userId);
-                    const hasRequestFrom = currentFriendRequests.includes(userId);
-                    
-                    let buttonHTML = '';
-                    
-                    if (isFriend) {
-                        buttonHTML = `<button class="btn btn-mark" disabled><i class="fa-solid fa-check"></i> Friends</button>`;
-                    } else if (requestSent) {
-                        buttonHTML = `<button class="btn" disabled><i class="fa-solid fa-clock"></i> Request Sent</button>`;
-                    } else if (hasRequestFrom) {
-                        buttonHTML = `<button class="btn btn-success btn-accept-search" data-user-id="${userId}"><i class="fa-solid fa-check"></i> Accept Request</button>`;
-                    } else {
-                        buttonHTML = `<button class="btn btn-mark btn-add-friend" data-user-id="${userId}"><i class="fa-solid fa-user-plus"></i> Add Friend</button>`;
-                    }
-                    
-                    const resultItem = document.createElement('div');
-                    resultItem.className = 'search-result-item';
-                    resultItem.innerHTML = `
-                        <div class="friend-avatar">${userData.username?.charAt(0).toUpperCase() || 'U'}</div>
-                        <div style="flex:1;min-width:0;">
-                            <strong>@${userData.username || 'user'}</strong>
-                            <div class="small-muted">${userData.email || 'No email'}</div>
-                        </div>
-                        ${buttonHTML}
-                    `;
-                    searchResults.appendChild(resultItem);
-                    
-                    // Add event listeners
-                    const addBtn = resultItem.querySelector('.btn-add-friend');
-                    if (addBtn) {
-                        addBtn.addEventListener('click', async () => {
-                            await sendFriendRequest(userId);
-                        });
-                    }
-                    
-                    const acceptBtn = resultItem.querySelector('.btn-accept-search');
-                    if (acceptBtn) {
-                        acceptBtn.addEventListener('click', async () => {
-                            await acceptFriendRequest(userId);
-                        });
-                    }
-                }
-            });
-            
-            if (!foundUsers) {
-                searchResults.innerHTML = '<div class="small-muted">No users found</div>';
-            }
-        } catch (error) {
-            console.error('Error searching users:', error);
-            searchResults.innerHTML = '<div class="small-muted">Error searching users</div>';
-        }
-    }
-
-    // 6. RENDER FRIENDS LIST
-    async function renderFriendsList(friendIds) {
-        friendsList.innerHTML = '';
+        const currentRef = doc(db, 'users', currentUserId);
+        const currentSnap = await getDoc(currentRef);
+        const currentData = currentSnap.data() || {};
+        const friends = currentData.friends || [];
+        const sent = currentData.sentRequests || [];
+        const received = currentData.friendRequests || [];
         
-        if (!friendIds || friendIds.length === 0) {
-            friendsList.innerHTML = `
-                <div class="empty-friends">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <div style="font-size:1.1rem;margin-bottom:0.5rem;font-weight:600">No friends yet</div>
-                    <div>Add friends to start chatting!</div>
-                </div>
-            `;
-            return;
-        }
-        
-        for (const friendId of friendIds) {
-            try {
-                const friendRef = doc(db, 'users', friendId);
-                const friendSnap = await getDoc(friendRef);
-                
-                if (friendSnap.exists()) {
-                    const friend = friendSnap.data();
-                    const friendItem = document.createElement('div');
-                    friendItem.className = 'friend-item';
-                    friendItem.innerHTML = `
-                        <div class="friend-avatar">${friend.username?.charAt(0).toUpperCase() || 'F'}</div>
-                        <div style="flex:1;min-width:0;">
-                            <strong>@${friend.username || 'user'}</strong>
-                            <div class="small-muted">${friend.email || 'No email'}</div>
-                        </div>
-                        <div class="friend-actions">
-                            <button class="btn-chat btn-chat-friend" data-friend-id="${friendId}" title="Chat">
-                                <i class="fa-solid fa-message"></i>
-                            </button>
-                            <button class="btn-danger btn-remove-friend" data-friend-id="${friendId}" title="Remove Friend">
-                                <i class="fa-solid fa-user-minus"></i>
-                            </button>
-                        </div>
-                    `;
-                    friendsList.appendChild(friendItem);
-                    
-                    // Add chat event listener
-                    friendItem.querySelector('.btn-chat-friend').addEventListener('click', async (e) => {
-                        const friendId = e.currentTarget.dataset.friendId;
-                        await openChat(friendId);
-                    });
-                    
-                    // Add remove friend event listener
-                    friendItem.querySelector('.btn-remove-friend').addEventListener('click', async (e) => {
-                        const friendId = e.currentTarget.dataset.friendId;
-                        await removeFriend(friendId);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading friend:', error);
-            }
-        }
-    }
-
-    // 7. RENDER REQUESTS LIST
-    async function renderRequestsList(requestIds) {
-        requestsList.innerHTML = '';
-        
-        if (!requestIds || requestIds.length === 0) {
-            requestsList.innerHTML = '<div class="small-muted">No pending requests</div>';
-            return;
-        }
-        
-        for (const requestId of requestIds) {
-            try {
-                const requesterRef = doc(db, 'users', requestId);
-                const requesterSnap = await getDoc(requesterRef);
-                
-                if (requesterSnap.exists()) {
-                    const requester = requesterSnap.data();
-                    const requestItem = document.createElement('div');
-                    requestItem.className = 'request-item';
-                    requestItem.innerHTML = `
-                        <div class="friend-avatar">${requester.username?.charAt(0).toUpperCase() || 'U'}</div>
-                        <div style="flex:1;min-width:0;">
-                            <strong>@${requester.username || 'user'}</strong>
-                            <div class="small-muted">Wants to be friends</div>
-                        </div>
-                        <div class="request-actions">
-                            <button class="btn btn-success btn-accept" data-requester-id="${requestId}">
-                                <i class="fa-solid fa-check"></i>
-                            </button>
-                            <button class="btn btn-danger btn-decline" data-requester-id="${requestId}">
-                                <i class="fa-solid fa-times"></i>
-                            </button>
-                        </div>
-                    `;
-                    requestsList.appendChild(requestItem);
-                    
-                    requestItem.querySelector('.btn-accept').addEventListener('click', async (e) => {
-                        const requesterId = e.currentTarget.dataset.requesterId;
-                        await acceptFriendRequest(requesterId);
-                    });
-                    
-                    requestItem.querySelector('.btn-decline').addEventListener('click', async (e) => {
-                        const requesterId = e.currentTarget.dataset.requesterId;
-                        await declineFriendRequest(requesterId);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading request:', error);
-            }
-        }
-    }
-
-    // 8. LOAD FRIENDS DATA
-    function loadFriendsData() {
-        const userRef = doc(db, 'users', currentUserId);
-        
-        const unsubscribe = onSnapshot(userRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const userData = docSnap.data();
-                renderFriendsList(userData.friends || []);
-                renderRequestsList(userData.friendRequests || []);
-            }
-        }, (error) => {
-            console.error('Error loading friends data:', error);
-            friendsList.innerHTML = '<div class="small-muted">Error loading friends</div>';
-        });
-        
-        // Store unsubscribe function for cleanup
-        window.friendsUnsubscribe = unsubscribe;
-    }
-
-    // 9. CHAT FUNCTIONALITY
-    const chatModal = document.getElementById('chatModal');
-    const closeChatModal = document.getElementById('closeChatModal');
-    const messageInput = document.getElementById('messageInput');
-    const sendMessageBtn = document.getElementById('sendMessageBtn');
-    const messagesContainer = document.getElementById('messagesContainer');
-    const currentChatTitle = document.getElementById('currentChatTitle');
-    
-    let currentChatFriendId = null;
-    let chatUnsubscribe = null;
-    
-    async function openChat(friendId) {
-        try {
-            currentChatFriendId = friendId;
+        usersSnapshot.forEach((docSnap) => {
+          const userId = docSnap.id;
+          const userData = docSnap.data();
+          
+          if (userId === currentUserId) return;
+          if (!userData.username) return;
+          if (seenUsers.has(userId)) return;
+          seenUsers.add(userId);
+          
+          if (userData.username.toLowerCase().includes(searchTerm)) {
+            found = true;
             
-            // Get friend info
-            const friendRef = doc(db, 'users', friendId);
-            const friendSnap = await getDoc(friendRef);
+            let btnHtml = '';
+            const isFriend = friends.includes(userId);
+            const requestSent = sent.includes(userId);
+            const requestReceived = received.includes(userId);
             
-            if (!friendSnap.exists()) {
-                alert('Friend not found');
-                return;
-            }
-            
-            const friend = friendSnap.data();
-            currentChatTitle.textContent = `Chat with @${friend.username}`;
-            
-            // Clear messages
-            messagesContainer.innerHTML = '<div class="small-muted">Loading messages...</div>';
-            
-            // Open modal
-            chatModal.style.display = 'flex';
-            
-            // Load messages
-            loadMessages(friendId);
-            
-            // Focus input
-            setTimeout(() => messageInput.focus(), 100);
-            
-        } catch (error) {
-            console.error('Error opening chat:', error);
-            alert('Error opening chat');
-        }
-    }
-    
-    function loadMessages(friendId) {
-        // Unsubscribe from previous listener
-        if (chatUnsubscribe) {
-            chatUnsubscribe();
-        }
-        
-        const chatId = [currentUserId, friendId].sort().join('_');
-        const messagesRef = collection(db, 'chats', chatId, 'messages');
-        const messagesQuery = query(messagesRef, orderBy('timestamp', 'asc'));
-        
-        chatUnsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-            messagesContainer.innerHTML = '';
-            
-            if (snapshot.empty) {
-                messagesContainer.innerHTML = '<div class="small-muted">No messages yet. Start the conversation!</div>';
-                return;
-            }
-            
-            snapshot.forEach((doc) => {
-                const message = doc.data();
-                const messageEl = document.createElement('div');
-                messageEl.className = `message ${message.senderId === currentUserId ? 'own-message' : 'other-message'}`;
-                
-                // Format time
-                const time = message.timestamp?.toDate();
-                const timeStr = time ? formatTime(time) : '';
-                
-                messageEl.innerHTML = `
-                    <div class="message-text">${escapeHtml(message.text)}</div>
-                    <div class="message-time">${timeStr}</div>
-                `;
-                messagesContainer.appendChild(messageEl);
-            });
-            
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, (error) => {
-            console.error('Error loading messages:', error);
-            messagesContainer.innerHTML = '<div class="small-muted">Error loading messages</div>';
-        });
-    }
-    
-    async function sendMessage() {
-        const text = messageInput.value.trim();
-        if (!text || !currentChatFriendId) return;
-        
-        try {
-            const chatId = [currentUserId, currentChatFriendId].sort().join('_');
-            const messagesRef = collection(db, 'chats', chatId, 'messages');
-            
-            // Create chat document if it doesn't exist
-            const chatRef = doc(db, 'chats', chatId);
-            const chatSnap = await getDoc(chatRef);
-            
-            if (!chatSnap.exists()) {
-                await setDoc(chatRef, {
-                    participants: [currentUserId, currentChatFriendId],
-                    lastMessage: text,
-                    lastMessageTime: serverTimestamp(),
-                    created: serverTimestamp()
-                });
+            if (isFriend) {
+              btnHtml = '<button class="btn" disabled><i class="fa-solid fa-check"></i> Friends</button>';
+            } else if (requestSent) {
+              btnHtml = '<button class="btn" disabled><i class="fa-solid fa-clock"></i> Request Sent</button>';
+            } else if (requestReceived) {
+              btnHtml = `<button class="btn btn-success" data-id="${userId}"><i class="fa-solid fa-check"></i> Accept Request</button>`;
             } else {
-                await updateDoc(chatRef, {
-                    lastMessage: text,
-                    lastMessageTime: serverTimestamp()
-                });
+              btnHtml = `<button class="btn btn-mark" data-id="${userId}"><i class="fa-solid fa-user-plus"></i> Add Friend</button>`;
             }
             
-            // Add message
-            await addDoc(messagesRef, {
-                text: text,
-                senderId: currentUserId,
-                timestamp: serverTimestamp()
-            });
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.innerHTML = `
+              <div class="friend-avatar">${userData.username.charAt(0).toUpperCase()}</div>
+              <div style="flex:1;min-width:0;">
+                <strong>@${userData.username}</strong>
+                <div class="small-muted">${userData.email || ''}</div>
+              </div>
+              ${btnHtml}
+            `;
+            searchResults.appendChild(item);
             
-            // Clear input
-            messageInput.value = '';
+            const addBtn = item.querySelector('.btn-mark');
+            if (addBtn) {
+              addBtn.addEventListener('click', async () => {
+                await sendFriendRequest(addBtn.dataset.id);
+              });
+            }
             
-        } catch (error) {
-            console.error('Error sending message:', error);
-            alert('Error sending message');
+            const acceptBtn = item.querySelector('.btn-success');
+            if (acceptBtn) {
+              acceptBtn.addEventListener('click', async () => {
+                await acceptFriendRequest(acceptBtn.dataset.id);
+              });
+            }
+          }
+        });
+        
+        if (!found) {
+          searchResults.innerHTML = '<div class="small-muted">No users found</div>';
         }
-    }
-
-    // HELPER FUNCTIONS
-    function formatTime(date) {
-        if (!date) return '';
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+      } catch (error) {
+        console.error('Search error:', error);
+        searchResults.innerHTML = '<div class="small-muted">Search failed</div>';
+      }
     }
     
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    // 5. LOAD FRIENDS DATA
+    function loadFriendsData() {
+      console.log('📥 Loading friends...');
+      
+      const userRef = doc(db, 'users', currentUserId);
+      
+      onSnapshot(userRef, async (snap) => {
+        if (!snap.exists()) {
+          console.log('❌ No user data found');
+          return;
+        }
+        
+        const data = snap.data();
+        console.log('📊 Friends:', data.friends?.length || 0, 'Requests:', data.friendRequests?.length || 0);
+        
+        renderFriends(data.friends || []);
+        renderRequests(data.friendRequests || []);
+        
+      }, (error) => {
+        console.error('❌ Load error:', error);
+        friendsList.innerHTML = '<div class="small-muted">Error loading friends</div>';
+      });
     }
-
+    
+    // 6. RENDER FRIENDS
+    async function renderFriends(friendIds) {
+      friendsList.innerHTML = '';
+      
+      if (!friendIds || friendIds.length === 0) {
+        friendsList.innerHTML = `
+          <div class="empty-friends">
+            <i class="fa-solid fa-user-plus"></i>
+            <div style="font-size:1.1rem;margin-bottom:0.5rem;font-weight:600">No friends yet</div>
+            <div>Add friends to start chatting!</div>
+          </div>
+        `;
+        return;
+      }
+      
+      for (const friendId of friendIds) {
+        try {
+          const friendSnap = await getDoc(doc(db, 'users', friendId));
+          if (friendSnap.exists()) {
+            const friend = friendSnap.data();
+            const item = document.createElement('div');
+            item.className = 'friend-item';
+            item.innerHTML = `
+              <div class="friend-avatar">${friend.username?.charAt(0).toUpperCase() || 'F'}</div>
+              <div style="flex:1;min-width:0;">
+                <strong>@${friend.username || 'user'}</strong>
+                <div class="small-muted">${friend.email || ''}</div>
+              </div>
+              <div class="friend-actions">
+                <button class="btn-chat" onclick="alert('Chat coming soon!')">
+                  <i class="fa-solid fa-message"></i>
+                </button>
+              </div>
+            `;
+            friendsList.appendChild(item);
+          }
+        } catch (error) {
+          console.error('Error loading friend:', error);
+        }
+      }
+    }
+    
+    // 7. RENDER REQUESTS
+    async function renderRequests(requestIds) {
+      requestsList.innerHTML = '';
+      
+      if (!requestIds || requestIds.length === 0) {
+        requestsList.innerHTML = '<div class="small-muted">No pending requests</div>';
+        return;
+      }
+      
+      for (const requesterId of requestIds) {
+        try {
+          const requesterSnap = await getDoc(doc(db, 'users', requesterId));
+          if (requesterSnap.exists()) {
+            const requester = requesterSnap.data();
+            const item = document.createElement('div');
+            item.className = 'request-item';
+            item.innerHTML = `
+              <div class="friend-avatar">${requester.username?.charAt(0).toUpperCase() || 'U'}</div>
+              <div style="flex:1;min-width:0;">
+                <strong>@${requester.username || 'user'}</strong>
+                <div class="small-muted">Wants to be friends</div>
+              </div>
+              <div class="request-actions">
+                <button class="btn btn-success" data-id="${requesterId}">
+                  <i class="fa-solid fa-check"></i>
+                </button>
+                <button class="btn btn-danger" data-id="${requesterId}">
+                  <i class="fa-solid fa-times"></i>
+                </button>
+              </div>
+            `;
+            requestsList.appendChild(item);
+            
+            item.querySelector('.btn-success').addEventListener('click', async (e) => {
+              await acceptFriendRequest(e.target.dataset.id);
+            });
+            
+            item.querySelector('.btn-danger').addEventListener('click', async (e) => {
+              await declineFriendRequest(e.target.dataset.id);
+            });
+          }
+        } catch (error) {
+          console.error('Error loading request:', error);
+        }
+      }
+    }
+    
     // EVENT LISTENERS
     openAddFriend.addEventListener('click', () => {
-        addFriendModal.style.display = 'flex';
-        searchFriendInput.value = '';
-        searchResults.innerHTML = '<div class="small-muted">Search for users by username</div>';
-        setTimeout(() => searchFriendInput.focus(), 100);
+      addFriendModal.style.display = 'flex';
+      searchFriendInput.value = '';
+      searchResults.innerHTML = '<div class="small-muted">Search for users</div>';
+      setTimeout(() => searchFriendInput.focus(), 100);
     });
     
     closeAddFriend.addEventListener('click', () => {
-        addFriendModal.style.display = 'none';
+      addFriendModal.style.display = 'none';
     });
     
     searchFriendBtn.addEventListener('click', searchUsers);
-    
     searchFriendInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') searchUsers();
+      if (e.key === 'Enter') searchUsers();
     });
     
-    // Chat event listeners
-    closeChatModal.addEventListener('click', () => {
-        chatModal.style.display = 'none';
-        if (chatUnsubscribe) {
-            chatUnsubscribe();
-            chatUnsubscribe = null;
-        }
-    });
-    
-    sendMessageBtn.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
-
-    // INITIALIZE
+    // START
     loadFriendsData();
   }
 
@@ -1708,11 +1419,11 @@
     const postStatusBtn = document.getElementById('postStatusBtn');
     const statusInput = document.getElementById('statusInput');
 
-    // Load status updates from friends
+    // Load status updates
     function loadStatusUpdates() {
       const userRef = doc(db, 'users', user.uid);
       
-      const unsubscribe = onSnapshot(userRef, async (docSnap) => {
+      onSnapshot(userRef, async (docSnap) => {
         if (docSnap.exists()) {
           const userData = docSnap.data();
           const friendIds = userData.friends || [];
@@ -1728,7 +1439,6 @@
             return;
           }
 
-          // Load statuses from friends
           const statusPromises = friendIds.map(async (friendId) => {
             try {
               const statusQuery = query(
@@ -1742,7 +1452,7 @@
                 userId: friendId
               }));
             } catch (error) {
-              console.error('Error loading statuses for friend:', friendId, error);
+              console.error('Error loading statuses:', error);
               return [];
             }
           });
@@ -1752,9 +1462,6 @@
           
           renderStatusFeed(allStatuses);
         }
-      }, (error) => {
-        console.error('Error loading status updates:', error);
-        statusFeed.innerHTML = '<div class="small-muted">Error loading updates</div>';
       });
     }
 
@@ -1800,7 +1507,7 @@
       }
     }
 
-    // Post status update
+    // Post status
     async function postStatus() {
       const text = statusInput.value.trim();
       if (!text) {
@@ -1821,7 +1528,7 @@
       }
     }
 
-    // Helper function for time ago
+    // Helper
     function getTimeAgo(date) {
       if (!date) return '';
       const now = new Date();
@@ -1839,7 +1546,7 @@
     closeStatusModal.addEventListener('click', () => statusModal.style.display = 'none');
     postStatusBtn.addEventListener('click', postStatus);
 
-    // Initialize
+    // Start
     loadStatusUpdates();
   }
 
@@ -1854,12 +1561,6 @@
     function todayStr(){ return new Date().toISOString().slice(0,10); }
     function isoFromDateObj(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0,10); }
     function addDays(dateStr, n){ const d = new Date(dateStr); d.setDate(d.getDate() + n); return isoFromDateObj(d); }
-    function daysBetween(a,b){ return Math.round((new Date(b) - new Date(a))/(1000*60*60*24)); }
-    function lastNDates(n, endDateStr=null){
-      const arr=[]; const end = endDateStr ? new Date(endDateStr) : new Date();
-      for(let i=n-1;i>=0;i--){ const d=new Date(end); d.setDate(end.getDate()-i); arr.push(isoFromDateObj(d)); }
-      return arr;
-    }
 
     function loadHabits(){
       try {
@@ -2101,7 +1802,6 @@
         targetSection.classList.add('active');
         targetSection.scrollTop = 0;
         
-        // Show FAB only in habits section, hide username in habits section
         if (item.dataset.target === 'habitsSection') {
           habitFab.style.display = 'grid';
           usernameFooter.style.display = 'none';
@@ -2112,7 +1812,6 @@
       });
     });
 
-    // Set initial state (habits is active by default)
     usernameFooter.style.display = 'none';
     habitFab.style.display = 'grid';
 
