@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>FocusForge — Dashboard</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- CORS considerations handled through Firebase configuration -->
 <style>
   :root{
     --bg:#04102a;
@@ -858,15 +859,17 @@
     serverTimestamp, 
     doc, 
     getDocs, 
-    setDoc, 
     getDoc, 
+    setDoc, 
     updateDoc, 
+    deleteDoc,
     arrayUnion, 
     arrayRemove,
     writeBatch
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-  // Firebase configuration
+  // Firebase configuration with CORS support
+  // Note: Firebase handles CORS automatically through its SDK
   const firebaseConfig = {
     apiKey: "AIzaSyCewGquzK-puz3IJb09qlB-dhnxHR_zg-U",
     authDomain: "focusforge-75a71.firebaseapp.com",
@@ -902,7 +905,8 @@
         document.getElementById('accountUsername').textContent = currentUsername;
         document.getElementById('accountEmail').textContent = user.email;
         
-        initializeHabitApp(user.email);
+        // Initialize all app sections
+        initializeHabitApp(user);  // Changed from user.email to user
         initializeFriendsApp(user);
         initializeStatusApp(user);
         
@@ -1187,7 +1191,7 @@
       }
     }
     
-    // 4. SEARCH USERS (FIXED - NO DUPLICATES)
+    // 4. SEARCH USERS
     async function searchUsers() {
       const searchTerm = searchFriendInput.value.trim().toLowerCase();
       if (!searchTerm) {
@@ -1550,38 +1554,18 @@
     loadStatusUpdates();
   }
 
-  // ===== HABIT APP =====
-  function initializeHabitApp(userEmail) {
+  // ===== HABIT APP (FIRESTORE VERSION - CROSS-DEVICE SYNC) =====
+  function initializeHabitApp(user) {
     const $ = s => document.querySelector(s);
     const $$ = s => document.querySelectorAll(s);
-    const STORAGE_KEY = `focusforge_habits_${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}_v1`;
+    const userId = user.uid;
+    const habitsRef = collection(db, 'users', userId, 'habits');
     const habitFab = document.getElementById('openAdd');
     const usernameFooter = document.getElementById('usernameFooter');
 
     function todayStr(){ return new Date().toISOString().slice(0,10); }
     function isoFromDateObj(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0,10); }
     function addDays(dateStr, n){ const d = new Date(dateStr); d.setDate(d.getDate() + n); return isoFromDateObj(d); }
-
-    function loadHabits(){
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      } catch(e) {
-        return [];
-      }
-    }
-    function saveHabits(habits){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
-    }
-
-    function uniqueSorted(arr){
-      return Array.from(new Set(arr || [])).sort();
-    }
-    function ensureDefaults(h){
-      h.history = uniqueSorted(h.history || []);
-      h.color = h.color || '#60a5fa';
-      h.createdAt = h.createdAt || todayStr();
-      return h;
-    }
 
     function computeStreak(history, refDate=null){
       const today = refDate || todayStr();
@@ -1595,16 +1579,6 @@
       return streak;
     }
 
-    function scheduleMidnightReset(){
-      const now = new Date();
-      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 1, 0);
-      const ms = tomorrow - now;
-      setTimeout(()=> {
-        render();
-        setInterval(()=> render(), 24*60*60*1000);
-      }, ms);
-    }
-
     const grid = $('#grid');
     const emptyState = $('#emptyState');
     const statsChip = $('#statsChip');
@@ -1615,86 +1589,122 @@
       statsChip.textContent = `${total} habit${total!==1?'s':''} • ${completedToday} today`;
     }
 
+    let unsubscribeHabits = null;
+
     function render(){
-      const habits = loadHabits().map(ensureDefaults);
-      
-      if(habits.length === 0){ 
-        emptyState.style.display = 'block'; 
-        grid.innerHTML = '';
-      } else { 
-        emptyState.style.display = 'none'; 
+      if (!unsubscribeHabits) {
+        const q = query(habitsRef, orderBy('createdAt', 'desc'));
+        unsubscribeHabits = onSnapshot(q, (snapshot) => {
+          const habits = [];
+          snapshot.forEach((doc) => {
+            habits.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          });
+          
+          if(habits.length === 0){ 
+            emptyState.style.display = 'block'; 
+            grid.innerHTML = '';
+          } else { 
+            emptyState.style.display = 'none'; 
+          }
+
+          grid.innerHTML = '';
+          
+          habits.forEach(h => {
+            const streak = computeStreak(h.history);
+            const pct = Math.min(100, streak);
+            const doneToday = (h.history || []).includes(todayStr());
+            const size = 36, stroke = 4, radius = (size - stroke)/2;
+            const circumference = 2*Math.PI*radius;
+            const offset = circumference * (1 - pct/100);
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              <div class="progress" title="${streak} day streak">
+                <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                  <defs>
+                    <linearGradient id="g${h.id}" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="${h.color}"></stop>
+                      <stop offset="100%" stop-color="${h.color}"></stop>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="${size/2}" cy="${size/2}" r="${radius}" stroke="rgba(255,255,255,0.03)" stroke-width="${stroke}" fill="none"></circle>
+                  <circle cx="${size/2}" cy="${size/2}" r="${radius}" stroke="url(#g${h.id})" stroke-width="${stroke}" stroke-linecap="round"
+                    stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" fill="none" style="transition: stroke-dashoffset 450ms cubic-bezier(.2,.9,.3,1)"></circle>
+                </svg>
+                <div class="center">
+                  <div style="font-weight:800">${streak}</div>
+                  <div style="font-size:8px;color:var(--muted)">days</div>
+                </div>
+              </div>
+              <div class="meta">
+                <div class="habit-name" title="${escapeHtml(h.name)}">${escapeHtml(h.name)}</div>
+                <div class="habit-note">${escapeHtml(h.note || '')}</div>
+                <div class="habit-meta-row">
+                  <div class="chip">🔥 ${streak} streak</div>
+                  <div class="chip">${h.history?.length || 0} total</div>
+                </div>
+              </div>
+              <div class="habit-actions">
+                <button class="btn ${doneToday ? '' : 'btn-mark'} mark-btn" data-id="${h.id}">${doneToday ? '<i class="fa-solid fa-check"></i> Done' : '<i class="fa-solid fa-circle"></i> Mark'}</button>
+                <button class="btn btn-more" data-more="${h.id}"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+              </div>
+            `;
+
+            grid.appendChild(card);
+
+            card.querySelector('.mark-btn').addEventListener('click', () => toggleToday(h.id));
+            card.querySelector('[data-more]').addEventListener('click', (e) => openMoreMenu(e, h.id));
+          });
+
+          updateStatsDisplay(habits);
+        }, (error) => {
+          console.error('Error loading habits:', error);
+          emptyState.style.display = 'block';
+          emptyState.innerHTML = `
+            <i class="fa-solid fa-wifi-slash"></i>
+            <div style="font-size:1.1rem;margin-bottom:0.4rem;font-weight:600">Connection Error</div>
+            <div>Could not load habits. Please check your connection.</div>
+          `;
+        });
       }
-
-      const sorted = habits.slice().sort((a, b) => b.id - a.id);
-      grid.innerHTML = '';
-      
-      sorted.forEach(h => {
-        const streak = computeStreak(h.history);
-        const pct = Math.min(100, streak);
-        const doneToday = (h.history || []).includes(todayStr());
-        const size = 36, stroke = 4, radius = (size - stroke)/2;
-        const circumference = 2*Math.PI*radius;
-        const offset = circumference * (1 - pct/100);
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div class="progress" title="${streak} day streak">
-            <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-              <defs>
-                <linearGradient id="g${h.id}" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="${h.color}"></stop>
-                  <stop offset="100%" stop-color="${h.color}"></stop>
-                </linearGradient>
-              </defs>
-              <circle cx="${size/2}" cy="${size/2}" r="${radius}" stroke="rgba(255,255,255,0.03)" stroke-width="${stroke}" fill="none"></circle>
-              <circle cx="${size/2}" cy="${size/2}" r="${radius}" stroke="url(#g${h.id})" stroke-width="${stroke}" stroke-linecap="round"
-                stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" fill="none" style="transition: stroke-dashoffset 450ms cubic-bezier(.2,.9,.3,1)"></circle>
-            </svg>
-            <div class="center">
-              <div style="font-weight:800">${streak}</div>
-              <div style="font-size:8px;color:var(--muted)">days</div>
-            </div>
-          </div>
-          <div class="meta">
-            <div class="habit-name" title="${escapeHtml(h.name)}">${escapeHtml(h.name)}</div>
-            <div class="habit-note">${escapeHtml(h.note || '')}</div>
-            <div class="habit-meta-row">
-              <div class="chip">🔥 ${streak} streak</div>
-              <div class="chip">${h.history.length} total</div>
-            </div>
-          </div>
-          <div class="habit-actions">
-            <button class="btn ${doneToday ? '' : 'btn-mark'} mark-btn" data-id="${h.id}">${doneToday ? '<i class="fa-solid fa-check"></i> Done' : '<i class="fa-solid fa-circle"></i> Mark'}</button>
-            <button class="btn btn-more" data-more="${h.id}"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-          </div>
-        `;
-
-        grid.appendChild(card);
-
-        card.querySelector('.mark-btn').addEventListener('click', () => toggleToday(h.id));
-        card.querySelector('[data-more]').addEventListener('click', (e) => openMoreMenu(e, h.id));
-      });
-
-      updateStatsDisplay(habits);
     }
 
-    function toggleToday(habitId){
-      const habits = loadHabits();
-      const idx = habits.findIndex(h => h.id === habitId);
-      if(idx < 0) return;
-      const today = todayStr();
-      const hist = uniqueSorted(habits[idx].history || []);
-      const pos = hist.indexOf(today);
-      if(pos !== -1){
-        if(!confirm('Unmark completion for today?')) return;
-        hist.splice(pos,1);
-      } else {
-        hist.push(today);
+    function uniqueSorted(arr){
+      return Array.from(new Set(arr || [])).sort();
+    }
+
+    async function toggleToday(habitId){
+      const habitRef = doc(db, 'users', userId, 'habits', habitId);
+      
+      try {
+        const habitSnap = await getDoc(habitRef);
+        
+        if (!habitSnap.exists()) return;
+        
+        const habit = habitSnap.data();
+        const today = todayStr();
+        const history = uniqueSorted(habit.history || []);
+        const pos = history.indexOf(today);
+        
+        if(pos !== -1){
+          if(!confirm('Unmark completion for today?')) return;
+          history.splice(pos,1);
+        } else {
+          history.push(today);
+        }
+        
+        await updateDoc(habitRef, {
+          history: uniqueSorted(history),
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error toggling habit:', error);
+        alert('Error updating habit. Please try again.');
       }
-      habits[idx].history = uniqueSorted(hist);
-      saveHabits(habits);
-      render();
     }
 
     const modalBackdrop = $('#modalBackdrop');
@@ -1728,35 +1738,39 @@
       setTimeout(() => habitName.focus(), 100);
     }
 
-    function saveModalHabit(){
+    async function saveModalHabit(){
       const name = habitName.value.trim();
       if(!name){ alert('Enter habit name'); return; }
       const note = habitNote.value.trim();
       const color = habitColor.value || '#60a5fa';
 
-      const habits = loadHabits();
-      if(editingId){
-        const idx = habits.findIndex(h => h.id === editingId);
-        if(idx >= 0){
-          habits[idx].name = name;
-          habits[idx].note = note;
-          habits[idx].color = color;
+      try {
+        if(editingId){
+          // Update existing habit
+          const habitRef = doc(db, 'users', userId, 'habits', editingId);
+          await updateDoc(habitRef, {
+            name,
+            note,
+            color,
+            updatedAt: serverTimestamp()
+          });
+        } else {
+          // Create new habit
+          await addDoc(habitsRef, {
+            name,
+            note,
+            color,
+            history: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
         }
-      } else {
-        const newH = {
-          id: Date.now(),
-          name,
-          note,
-          color,
-          history: [],
-          createdAt: todayStr()
-        };
-        habits.push(newH);
+        modalBackdrop.style.display = 'none';
+        editingId = null;
+      } catch (error) {
+        console.error('Error saving habit:', error);
+        alert('Error saving habit. Please try again.');
       }
-      saveHabits(habits);
-      modalBackdrop.style.display = 'none';
-      editingId = null;
-      render();
     }
 
     const moreMenu = $('#moreMenu');
@@ -1772,21 +1786,36 @@
     }
     document.addEventListener('click', (e) => { if(!moreMenu.contains(e.target)) moreMenu.style.display = 'none'; });
 
-    $('#editBtn').addEventListener('click', ()=>{
+    $('#editBtn').addEventListener('click', async ()=>{
       moreMenu.style.display = 'none';
       if(!openMenuFor) return;
-      const h = loadHabits().find(x => x.id === openMenuFor);
-      if(!h) return;
-      openEditModal(h);
+      
+      try {
+        const habitRef = doc(db, 'users', userId, 'habits', openMenuFor);
+        const habitSnap = await getDoc(habitRef);
+        if(!habitSnap.exists()) return;
+        
+        const h = { id: habitSnap.id, ...habitSnap.data() };
+        openEditModal(h);
+      } catch (error) {
+        console.error('Error loading habit for edit:', error);
+        alert('Error loading habit. Please try again.');
+      }
     });
-    $('#deleteBtn').addEventListener('click', ()=>{
+    
+    $('#deleteBtn').addEventListener('click', async ()=>{
       moreMenu.style.display = 'none';
       if(!openMenuFor) return;
+      
       if(!confirm('Delete this habit?')) return;
-      let habits = loadHabits();
-      habits = habits.filter(h => h.id !== openMenuFor);
-      saveHabits(habits);
-      render();
+      
+      try {
+        const habitRef = doc(db, 'users', userId, 'habits', openMenuFor);
+        await deleteDoc(habitRef);
+      } catch (error) {
+        console.error('Error deleting habit:', error);
+        alert('Error deleting habit. Please try again.');
+      }
     });
 
     const navItems = $$('.nav-item');
@@ -1815,15 +1844,78 @@
     usernameFooter.style.display = 'none';
     habitFab.style.display = 'grid';
 
-    $('#refreshBtn').addEventListener('click', ()=> render());
-    scheduleMidnightReset();
+    $('#refreshBtn').addEventListener('click', () => {
+      if (unsubscribeHabits) {
+        unsubscribeHabits();
+        unsubscribeHabits = null;
+      }
+      render();
+    });
+
     function escapeHtml(s){ 
       const div = document.createElement('div');
       div.textContent = s || '';
       return div.innerHTML;
     }
+    
+    // Start rendering
     render();
   }
+
+  // ===== CORS HANDLING =====
+  // Firebase SDK automatically handles CORS through its configuration
+  // For additional security, ensure your Firebase Security Rules are properly set
+  
+  // ===== MIGRATION FUNCTION (Optional) =====
+  async function migrateLocalHabitsToFirestore(user) {
+    // Only run if user wants to migrate
+    const STORAGE_KEY = `focusforge_habits_${user.email.replace(/[^a-zA-Z0-9]/g, '_')}_v1`;
+    const localHabits = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    
+    if (localHabits.length > 0) {
+      // Check if user already has habits in Firestore
+      const habitsRef = collection(db, 'users', user.uid, 'habits');
+      const habitsSnap = await getDocs(habitsRef);
+      
+      if (habitsSnap.empty) {
+        // Only ask to migrate if Firestore is empty
+        if (confirm('Would you like to migrate your local habits to cloud storage?')) {
+          const batch = writeBatch(db);
+          
+          for (const habit of localHabits) {
+            const habitDocRef = doc(habitsRef);
+            batch.set(habitDocRef, {
+              name: habit.name,
+              note: habit.note || '',
+              color: habit.color || '#60a5fa',
+              history: habit.history || [],
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          }
+          
+          try {
+            await batch.commit();
+            localStorage.removeItem(STORAGE_KEY);
+            alert('Habits migrated successfully! They will now sync across devices.');
+          } catch (error) {
+            console.error('Migration error:', error);
+            alert('Migration failed. Habits remain in local storage.');
+          }
+        }
+      }
+    }
+  }
+
+  // Optional: Call migration after user login
+  // onAuthStateChanged(auth, async (user) => {
+  //   if (user) {
+  //     // Wait a bit for app to initialize
+  //     setTimeout(() => {
+  //       migrateLocalHabitsToFirestore(user);
+  //     }, 2000);
+  //   }
+  // });
 </script>
 </body>
 </html>
