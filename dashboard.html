@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>FocusForge — Dashboard</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- CORS considerations handled through Firebase configuration -->
 <style>
   :root{
     --bg:#04102a;
@@ -258,26 +257,30 @@
   .loading{display:flex;justify-content:center;align-items:center;height:100vh;background:var(--bg);color:white;flex-direction:column;gap:1rem;}
   .loading .logo{width:50px;height:50px;font-size:1.2rem;}
 
-  .friend-item, .request-item, .search-result-item {
+  /* FRIENDS SECTION - SINGLE LINE LAYOUT */
+  .friend-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: var(--radius);
+    padding: 0.6rem;
     display: flex;
+    gap: 0.6rem;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.02);
-    background: rgba(255,255,255,0.01);
-    margin-bottom: 0.4rem;
-    transition: all 0.2s ease;
+    border: 1px solid rgba(255,255,255,0.03);
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: auto;
+    margin-bottom: 0.5rem;
   }
-
-  .friend-item:hover, .search-result-item:hover {
-    background: rgba(255,255,255,0.02);
+  
+  .friend-card:hover {
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2,6,23,0.4);
   }
-
+  
   .friend-avatar {
     width: 36px;
     height: 36px;
+    flex: 0 0 36px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
@@ -285,69 +288,202 @@
     justify-content: center;
     font-weight: 700;
     color: #021025;
-    flex-shrink: 0;
     font-size: 0.8rem;
   }
-
-  .friend-actions, .request-actions {
-    display: flex;
-    gap: 0.4rem;
+  
+  .friend-meta {
+    flex: 1;
+    min-width: 0;
   }
-
+  
+  .friend-name {
+    font-weight: 700;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.1rem;
+    line-height: 1.2;
+  }
+  
+  .friend-email {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-clamp: 1;
+  }
+  
+  .friend-status {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.02);
+    color: var(--muted);
+    display: inline-block;
+  }
+  
+  .friend-actions {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  
   .btn-chat {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: #021025;
     border: none;
-    padding: 0.4rem 0.75rem;
-    border-radius: 6px;
+    padding: 0.3rem 0.5rem;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
+    display: inline-flex;
+    gap: 0.15rem;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
   }
-
-  .btn-success {
+  
+  .btn-remove {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.03);
+    color: var(--muted);
+    padding: 0.3rem;
+    border-radius: 5px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* REQUEST CARDS */
+  .request-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: var(--radius);
+    padding: 0.6rem;
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.03);
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: auto;
+    margin-bottom: 0.5rem;
+  }
+  
+  .request-avatar {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #021025;
+    font-size: 0.8rem;
+  }
+  
+  .request-meta {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .request-name {
+    font-weight: 700;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.1rem;
+    line-height: 1.2;
+  }
+  
+  .request-text {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-clamp: 1;
+  }
+  
+  .request-actions {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  
+  .btn-success-small {
     background: var(--success);
     color: #021025;
     border: none;
-    padding: 0.4rem;
-    border-radius: 6px;
-    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.65rem;
+    display: inline-flex;
+    gap: 0.15rem;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
   }
-
-  .btn-danger {
+  
+  .btn-danger-small {
     background: var(--danger);
     color: white;
     border: none;
-    padding: 0.4rem;
-    border-radius: 6px;
-    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.65rem;
+    display: inline-flex;
+    gap: 0.15rem;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
   }
-
+  
   .empty-friends, .empty-status {
     text-align: center;
     padding: 2rem 1rem;
     color: var(--muted);
   }
-
+  
   .empty-friends i, .empty-status i {
     font-size: 2rem;
     margin-bottom: 0.75rem;
     opacity: 0.5;
   }
-
+  
   .requests-container {
     background: rgba(255,255,255,0.02);
     border-radius: 10px;
     padding: 0.75rem;
     margin-bottom: 0.75rem;
   }
-
+  
   .requests-title {
     font-weight: 600;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.75rem;
     color: var(--accent);
     font-size: 0.8rem;
   }
-
+  
   .user-avatar-small {
     width: 20px;
     height: 20px;
@@ -361,43 +497,43 @@
     font-size: 0.6rem;
     flex-shrink: 0;
   }
-
+  
   .message {
     margin-bottom: 0.75rem;
     padding: 0.6rem;
     border-radius: 10px;
     max-width: 80%;
   }
-
+  
   .own-message {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     margin-left: auto;
     color: #021025;
   }
-
+  
   .other-message {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
   }
-
+  
   .message-text {
     font-size: 0.8rem;
     line-height: 1.3;
   }
-
+  
   .message-time {
     font-size: 0.6rem;
     opacity: 0.7;
     margin-top: 0.2rem;
     text-align: right;
   }
-
+  
   .status-text {
     font-size: 0.85rem;
     line-height: 1.3;
     color: #e8f2ff;
   }
-
+  
   .chat-modal {
     width: 100%;
     max-width: 400px;
@@ -405,7 +541,7 @@
     display: flex;
     flex-direction: column;
   }
-
+  
   .messages-container {
     flex: 1;
     overflow-y: auto;
@@ -413,14 +549,14 @@
     display: flex;
     flex-direction: column;
   }
-
+  
   .chat-input-container {
     display: flex;
     gap: 0.4rem;
     padding: 0.75rem;
     border-top: 1px solid rgba(255,255,255,0.1);
   }
-
+  
   .chat-input {
     flex: 1;
     padding: 0.6rem;
@@ -431,7 +567,7 @@
     outline: none;
     font-size: 0.8rem;
   }
-
+  
   .send-btn {
     padding: 0.6rem 0.8rem;
     border-radius: 16px;
@@ -441,7 +577,7 @@
     cursor: pointer;
     font-size: 0.8rem;
   }
-
+  
   .modal-header {
     display: flex;
     justify-content: space-between;
@@ -486,6 +622,28 @@
       flex: 1;
     }
     
+    .friend-card, .request-card {
+      padding: 0.5rem;
+      gap: 0.5rem;
+    }
+    
+    .friend-avatar, .request-avatar {
+      width: 32px;
+      height: 32px;
+      flex: 0 0 32px;
+      font-size: 0.7rem;
+    }
+    
+    .friend-actions, .request-actions {
+      flex-direction: row;
+      gap: 0.3rem;
+    }
+    
+    .friend-actions .btn, .request-actions .btn {
+      width: auto;
+      flex: 1;
+    }
+    
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -506,22 +664,6 @@
     .modal-backdrop {
       padding: 0.5rem;
       align-items: flex-end;
-    }
-    
-    .friend-item, .request-item, .search-result-item {
-      flex-direction: column;
-      text-align: center;
-      gap: 0.5rem;
-      padding: 0.6rem;
-    }
-    
-    .friend-actions, .request-actions {
-      justify-content: center;
-      width: 100%;
-    }
-    
-    .friend-actions .btn, .request-actions .btn {
-      flex: 1;
     }
     
     .message {
@@ -868,8 +1010,7 @@
     writeBatch
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-  // Firebase configuration with CORS support
-  // Note: Firebase handles CORS automatically through its SDK
+  // Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyCewGquzK-puz3IJb09qlB-dhnxHR_zg-U",
     authDomain: "focusforge-75a71.firebaseapp.com",
@@ -906,7 +1047,7 @@
         document.getElementById('accountEmail').textContent = user.email;
         
         // Initialize all app sections
-        initializeHabitApp(user);  // Changed from user.email to user
+        initializeHabitApp(user);
         initializeFriendsApp(user);
         initializeStatusApp(user);
         
@@ -1092,7 +1233,7 @@
     }
   });
 
-  // ===== WORKING FRIENDS APP =====
+  // ===== WORKING FRIENDS APP (SINGLE LINE LAYOUT) =====
   function initializeFriendsApp(user) {
     console.log('🚀 Starting Friends App');
     
@@ -1191,7 +1332,34 @@
       }
     }
     
-    // 4. SEARCH USERS
+    // 4. REMOVE FRIEND - FIXED VERSION
+    async function removeFriend(friendId) {
+      if (!confirm('Remove this friend?')) return;
+      
+      try {
+        const batch = writeBatch(db);
+        const currentRef = doc(db, 'users', currentUserId);
+        const friendRef = doc(db, 'users', friendId);
+        
+        batch.update(currentRef, {
+          friends: arrayRemove(friendId)
+        });
+        
+        batch.update(friendRef, {
+          friends: arrayRemove(currentUserId)
+        });
+        
+        await batch.commit();
+        alert('Friend removed');
+        loadFriendsData();
+        
+      } catch (error) {
+        console.error('Remove friend error:', error);
+        alert('Error: ' + error.message);
+      }
+    }
+    
+    // 5. SEARCH USERS
     async function searchUsers() {
       const searchTerm = searchFriendInput.value.trim().toLowerCase();
       if (!searchTerm) {
@@ -1237,34 +1405,43 @@
             } else if (requestSent) {
               btnHtml = '<button class="btn" disabled><i class="fa-solid fa-clock"></i> Request Sent</button>';
             } else if (requestReceived) {
-              btnHtml = `<button class="btn btn-success" data-id="${userId}"><i class="fa-solid fa-check"></i> Accept Request</button>`;
+              btnHtml = `<button class="btn btn-success" data-id="${userId}"><i class="fa-solid fa-check"></i> Accept</button>`;
             } else {
-              btnHtml = `<button class="btn btn-mark" data-id="${userId}"><i class="fa-solid fa-user-plus"></i> Add Friend</button>`;
+              btnHtml = `<button class="btn btn-mark" data-id="${userId}"><i class="fa-solid fa-user-plus"></i> Add</button>`;
             }
             
             const item = document.createElement('div');
-            item.className = 'search-result-item';
+            item.className = 'friend-card';
             item.innerHTML = `
               <div class="friend-avatar">${userData.username.charAt(0).toUpperCase()}</div>
-              <div style="flex:1;min-width:0;">
-                <strong>@${userData.username}</strong>
-                <div class="small-muted">${userData.email || ''}</div>
+              <div class="friend-meta">
+                <div class="friend-name">@${userData.username}</div>
+                <div class="friend-email">${userData.email || ''}</div>
+                <div class="friend-status">${isFriend ? 'Friends' : requestSent ? 'Request sent' : requestReceived ? 'Request received' : 'Not connected'}</div>
               </div>
-              ${btnHtml}
+              <div class="friend-actions">
+                ${btnHtml}
+              </div>
             `;
             searchResults.appendChild(item);
             
             const addBtn = item.querySelector('.btn-mark');
             if (addBtn) {
-              addBtn.addEventListener('click', async () => {
-                await sendFriendRequest(addBtn.dataset.id);
+              addBtn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-id');
+                if (targetId) {
+                  sendFriendRequest(targetId);
+                }
               });
             }
             
             const acceptBtn = item.querySelector('.btn-success');
             if (acceptBtn) {
-              acceptBtn.addEventListener('click', async () => {
-                await acceptFriendRequest(acceptBtn.dataset.id);
+              acceptBtn.addEventListener('click', function() {
+                const requesterId = this.getAttribute('data-id');
+                if (requesterId) {
+                  acceptFriendRequest(requesterId);
+                }
               });
             }
           }
@@ -1280,7 +1457,7 @@
       }
     }
     
-    // 5. LOAD FRIENDS DATA
+    // 6. LOAD FRIENDS DATA
     function loadFriendsData() {
       console.log('📥 Loading friends...');
       
@@ -1304,7 +1481,7 @@
       });
     }
     
-    // 6. RENDER FRIENDS
+    // 7. RENDER FRIENDS (SINGLE LINE) - FIXED EVENT LISTENER
     async function renderFriends(friendIds) {
       friendsList.innerHTML = '';
       
@@ -1325,20 +1502,36 @@
           if (friendSnap.exists()) {
             const friend = friendSnap.data();
             const item = document.createElement('div');
-            item.className = 'friend-item';
+            item.className = 'friend-card';
             item.innerHTML = `
               <div class="friend-avatar">${friend.username?.charAt(0).toUpperCase() || 'F'}</div>
-              <div style="flex:1;min-width:0;">
-                <strong>@${friend.username || 'user'}</strong>
-                <div class="small-muted">${friend.email || ''}</div>
+              <div class="friend-meta">
+                <div class="friend-name">@${friend.username || 'user'}</div>
+                <div class="friend-email">${friend.email || ''}</div>
+                <div class="friend-status">Friends</div>
               </div>
               <div class="friend-actions">
                 <button class="btn-chat" onclick="alert('Chat coming soon!')">
-                  <i class="fa-solid fa-message"></i>
+                  <i class="fa-solid fa-message"></i> Chat
+                </button>
+                <button class="btn-remove" data-id="${friendId}" title="Remove friend">
+                  <i class="fa-solid fa-user-minus"></i>
                 </button>
               </div>
             `;
             friendsList.appendChild(item);
+            
+            // FIXED: Add remove friend functionality with proper event delegation
+            const removeBtn = item.querySelector('.btn-remove');
+            if (removeBtn) {
+              removeBtn.addEventListener('click', function() {
+                // Get the friendId from the button's data attribute
+                const friendId = this.getAttribute('data-id');
+                if (friendId) {
+                  removeFriend(friendId);
+                }
+              });
+            }
           }
         } catch (error) {
           console.error('Error loading friend:', error);
@@ -1346,12 +1539,12 @@
       }
     }
     
-    // 7. RENDER REQUESTS
+    // 8. RENDER REQUESTS (SINGLE LINE) - FIXED EVENT LISTENER
     async function renderRequests(requestIds) {
       requestsList.innerHTML = '';
       
       if (!requestIds || requestIds.length === 0) {
-        requestsList.innerHTML = '<div class="small-muted">No pending requests</div>';
+        requestsList.innerHTML = '<div class="small-muted" style="padding: 0.5rem;">No pending requests</div>';
         return;
       }
       
@@ -1361,30 +1554,38 @@
           if (requesterSnap.exists()) {
             const requester = requesterSnap.data();
             const item = document.createElement('div');
-            item.className = 'request-item';
+            item.className = 'request-card';
             item.innerHTML = `
-              <div class="friend-avatar">${requester.username?.charAt(0).toUpperCase() || 'U'}</div>
-              <div style="flex:1;min-width:0;">
-                <strong>@${requester.username || 'user'}</strong>
-                <div class="small-muted">Wants to be friends</div>
+              <div class="request-avatar">${requester.username?.charAt(0).toUpperCase() || 'U'}</div>
+              <div class="request-meta">
+                <div class="request-name">@${requester.username || 'user'}</div>
+                <div class="request-text">Wants to be friends</div>
+                <div class="friend-status">Pending</div>
               </div>
               <div class="request-actions">
-                <button class="btn btn-success" data-id="${requesterId}">
-                  <i class="fa-solid fa-check"></i>
+                <button class="btn-success-small" data-id="${requesterId}">
+                  <i class="fa-solid fa-check"></i> Accept
                 </button>
-                <button class="btn btn-danger" data-id="${requesterId}">
-                  <i class="fa-solid fa-times"></i>
+                <button class="btn-danger-small" data-id="${requesterId}">
+                  <i class="fa-solid fa-times"></i> Decline
                 </button>
               </div>
             `;
             requestsList.appendChild(item);
             
-            item.querySelector('.btn-success').addEventListener('click', async (e) => {
-              await acceptFriendRequest(e.target.dataset.id);
+            // FIXED: Use 'this' to get the correct element
+            item.querySelector('.btn-success-small').addEventListener('click', function() {
+              const requesterId = this.getAttribute('data-id');
+              if (requesterId) {
+                acceptFriendRequest(requesterId);
+              }
             });
             
-            item.querySelector('.btn-danger').addEventListener('click', async (e) => {
-              await declineFriendRequest(e.target.dataset.id);
+            item.querySelector('.btn-danger-small').addEventListener('click', function() {
+              const requesterId = this.getAttribute('data-id');
+              if (requesterId) {
+                declineFriendRequest(requesterId);
+              }
             });
           }
         } catch (error) {
@@ -1862,10 +2063,6 @@
     render();
   }
 
-  // ===== CORS HANDLING =====
-  // Firebase SDK automatically handles CORS through its configuration
-  // For additional security, ensure your Firebase Security Rules are properly set
-  
   // ===== MIGRATION FUNCTION (Optional) =====
   async function migrateLocalHabitsToFirestore(user) {
     // Only run if user wants to migrate
@@ -1906,16 +2103,6 @@
       }
     }
   }
-
-  // Optional: Call migration after user login
-  // onAuthStateChanged(auth, async (user) => {
-  //   if (user) {
-  //     // Wait a bit for app to initialize
-  //     setTimeout(() => {
-  //       migrateLocalHabitsToFirestore(user);
-  //     }, 2000);
-  //   }
-  // });
 </script>
 </body>
 </html>
