@@ -103,6 +103,7 @@
     position:relative;
     transition:transform 0.2s ease, box-shadow 0.2s ease;
     min-height: auto;
+    cursor: pointer;
   }
   .card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(2,6,23,0.4);}
   
@@ -113,11 +114,13 @@
     display:grid;
     place-items:center;
     position:relative;
+    pointer-events: none;
   }
   .progress svg{
     transform:rotate(-90deg);
     width:36px;
     height:36px;
+    pointer-events: none;
   }
   .progress .center{
     position:absolute;
@@ -128,13 +131,14 @@
     font-size:0.55rem;
     color:#e6eef8;
     line-height:1;
+    pointer-events: none;
   }
   .progress .center div:first-child{
     font-weight:800;
     font-size:0.65rem;
   }
   
-  .meta{flex:1;min-width:0;}
+  .meta{flex:1;min-width:0;pointer-events: none;}
   .habit-name{
     font-weight:700;
     font-size:0.8rem;
@@ -161,6 +165,7 @@
     align-items:center;
     flex-wrap:wrap;
     margin-bottom:0.2rem;
+    pointer-events: none;
   }
   .chip{
     font-size:0.6rem;
@@ -169,12 +174,14 @@
     background:rgba(255,255,255,0.02);
     border:1px solid rgba(255,255,255,0.02);
     color:var(--muted);
+    pointer-events: none;
   }
   .habit-actions{
     display:flex;
     gap:0.3rem;
     align-items:center;
     margin-top:0.3rem;
+    pointer-events: auto;
   }
   .btn{
     padding:0.3rem 0.5rem;
@@ -689,9 +696,39 @@
     }
   }
 
+  /* Mobile modals fix */
+  @media (max-width: 768px) {
+    .modal-backdrop {
+      align-items: flex-end !important;
+      padding: 0 !important;
+    }
+    
+    .modal {
+      border-radius: 16px 16px 0 0 !important;
+      margin: 0 !important;
+      max-height: 85vh !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+  }
+
+  /* Chat input fix */
+  .chat-input-container {
+    padding: 0.5rem;
+    background: rgba(255,255,255,0.02);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* Prevent text overflow */
+  .habit-name, .friend-name, .request-name {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Better touch targets */
   .btn, .nav-item, .icon-btn {
-    min-height: 36px;
-    min-width: 36px;
+    min-height: 44px;
+    min-width: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1028,6 +1065,15 @@
 
   let currentUser = null;
   let currentUsername = '';
+  let currentChatFriend = null;
+  let currentChatUnsubscribe = null;
+
+  // Utility function to escape HTML
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
 
   // ===== FIREBASE AUTH LISTENER =====
   onAuthStateChanged(auth, async (user) => {
@@ -1122,6 +1168,12 @@
         const userData = userSnap.data();
         currentUsername = userData.username || user.email.split('@')[0];
         console.log('👤 Existing user loaded:', currentUsername);
+        
+        // Set account creation date
+        const createdDate = userData.createdAt?.toDate();
+        if (createdDate) {
+          document.getElementById('accountCreated').textContent = createdDate.toLocaleDateString();
+        }
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -1215,6 +1267,16 @@
       }
     });
 
+    // Add Escape key listener
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (accountModal.style.display === 'flex') {
+          accountModal.style.display = 'none';
+          cancelEdit();
+        }
+      }
+    });
+
     function cancelEdit() {
       document.querySelector('.username-display').style.display = 'flex';
       document.querySelector('.edit-username').style.display = 'none';
@@ -1233,7 +1295,7 @@
     }
   });
 
-  // ===== WORKING FRIENDS APP (SINGLE LINE LAYOUT) =====
+  // ===== WORKING FRIENDS APP =====
   function initializeFriendsApp(user) {
     console.log('🚀 Starting Friends App');
     
@@ -1245,8 +1307,21 @@
     const searchFriendInput = document.getElementById('searchFriendInput');
     const searchFriendBtn = document.getElementById('searchFriendBtn');
     const searchResults = document.getElementById('searchResults');
+    const chatModal = document.getElementById('chatModal');
+    const closeChatModal = document.getElementById('closeChatModal');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const currentChatTitle = document.getElementById('currentChatTitle');
     
     const currentUserId = user.uid;
+    
+    // Helper function to format time
+    function formatTime(timestamp) {
+      if (!timestamp) return '';
+      const date = timestamp.toDate ? timestamp.toDate() : new Date();
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
     
     // 1. SEND FRIEND REQUEST
     async function sendFriendRequest(targetUserId) {
@@ -1332,34 +1407,262 @@
       }
     }
     
-    // 4. REMOVE FRIEND - FIXED VERSION
+    // 4. REMOVE FRIEND - WORKING VERSION
     async function removeFriend(friendId) {
-      if (!confirm('Remove this friend?')) return;
+      if (!confirm('Are you sure you want to remove this friend?')) return;
+      
+      console.log('🗑️ Removing friend:', friendId);
       
       try {
+        // Create batch
         const batch = writeBatch(db);
-        const currentRef = doc(db, 'users', currentUserId);
+        
+        // Get references
+        const currentUserRef = doc(db, 'users', currentUserId);
         const friendRef = doc(db, 'users', friendId);
         
-        batch.update(currentRef, {
+        // Remove from current user's friends list
+        batch.update(currentUserRef, {
           friends: arrayRemove(friendId)
         });
         
+        // Remove from friend's friends list
         batch.update(friendRef, {
           friends: arrayRemove(currentUserId)
         });
         
+        // Clean up any pending requests
+        batch.update(currentUserRef, {
+          sentRequests: arrayRemove(friendId),
+          friendRequests: arrayRemove(friendId)
+        });
+        
+        batch.update(friendRef, {
+          sentRequests: arrayRemove(currentUserId),
+          friendRequests: arrayRemove(currentUserId)
+        });
+        
+        // Commit the batch
         await batch.commit();
-        alert('Friend removed');
-        loadFriendsData();
+        console.log('✅ Friend removed successfully');
+        
+        alert('Friend removed!');
+        loadFriendsData(); // Refresh the friends list
         
       } catch (error) {
-        console.error('Remove friend error:', error);
-        alert('Error: ' + error.message);
+        console.error('❌ Remove friend error:', error);
+        
+        // More specific error messages
+        if (error.code === 'permission-denied') {
+          alert('Permission denied. Please check Firebase rules.');
+        } else if (error.code === 'not-found') {
+          alert('Friend not found. They may have deleted their account.');
+        } else {
+          alert('Error removing friend: ' + error.message);
+        }
       }
     }
     
-    // 5. SEARCH USERS
+    // 5. OPEN CHAT WITH FRIEND - WORKING VERSION
+    async function openChat(friendId) {
+      try {
+        const friendSnap = await getDoc(doc(db, 'users', friendId));
+        if (!friendSnap.exists()) {
+          alert('Friend not found');
+          return;
+        }
+        
+        const friend = friendSnap.data();
+        currentChatFriend = { id: friendId, ...friend };
+        currentChatTitle.textContent = `Chat with @${friend.username}`;
+        
+        // Clean up previous listener
+        if (currentChatUnsubscribe) {
+          currentChatUnsubscribe();
+        }
+        
+        chatModal.style.display = 'flex';
+        loadChatMessages(friendId);
+        setTimeout(() => messageInput.focus(), 100);
+        
+      } catch (error) {
+        console.error('Error opening chat:', error);
+        alert('Error opening chat: ' + error.message);
+      }
+    }
+    
+    // 6. LOAD CHAT MESSAGES - WORKING VERSION
+    async function loadChatMessages(friendId) {
+      messagesContainer.innerHTML = '<div class="small-muted" style="text-align:center;padding:1rem;">Loading messages...</div>';
+      
+      // Get chat ID (sorted IDs to ensure same chat ID for both users)
+      const chatId = [currentUserId, friendId].sort().join('_');
+      console.log('Loading chat with ID:', chatId);
+      
+      try {
+        // First, ensure chat document exists
+        const chatRef = doc(db, 'chats', chatId);
+        const chatSnap = await getDoc(chatRef);
+        
+        if (!chatSnap.exists()) {
+          console.log('Chat document does not exist, creating...');
+          await setDoc(chatRef, {
+            participants: [currentUserId, friendId],
+            createdAt: serverTimestamp(),
+            lastMessage: null,
+            lastMessageAt: null
+          });
+          console.log('Chat document created');
+        }
+        
+        // Now load messages
+        const messagesRef = collection(db, 'chats', chatId, 'messages');
+        const q = query(messagesRef, orderBy('timestamp', 'asc'));
+        
+        currentChatUnsubscribe = onSnapshot(q, (snapshot) => {
+          messagesContainer.innerHTML = '';
+          
+          if (snapshot.empty) {
+            messagesContainer.innerHTML = '<div class="small-muted" style="text-align:center;padding:1rem;">No messages yet. Start the conversation!</div>';
+            return;
+          }
+          
+          snapshot.forEach((doc) => {
+            const message = doc.data();
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${message.senderId === currentUserId ? 'own-message' : 'other-message'}`;
+            
+            // Format time
+            let timeStr = '';
+            if (message.timestamp) {
+              const date = message.timestamp.toDate ? message.timestamp.toDate() : new Date();
+              timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+            
+            messageEl.innerHTML = `
+              <div class="message-text">${escapeHtml(message.text)}</div>
+              <div class="message-time">${timeStr}</div>
+            `;
+            messagesContainer.appendChild(messageEl);
+          });
+          
+          // Scroll to bottom
+          setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+          }, 100);
+          
+        }, (error) => {
+          console.error('Error listening to messages:', error);
+          messagesContainer.innerHTML = '<div class="small-muted" style="text-align:center;padding:1rem;color:var(--danger);">Error loading messages. Please try again.</div>';
+        });
+        
+      } catch (error) {
+        console.error('Error setting up chat:', error);
+        messagesContainer.innerHTML = '<div class="small-muted" style="text-align:center;padding:1rem;color:var(--danger);">Error: ' + error.message + '</div>';
+      }
+    }
+    
+    // 7. SEND MESSAGE - WORKING VERSION
+    async function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text) {
+        alert('Please enter a message');
+        return;
+      }
+      
+      if (!currentChatFriend) {
+        alert('No chat selected');
+        return;
+      }
+      
+      console.log('Sending message to:', currentChatFriend.id);
+      
+      try {
+        const chatId = [currentUserId, currentChatFriend.id].sort().join('_');
+        const messagesRef = collection(db, 'chats', chatId, 'messages');
+        const chatRef = doc(db, 'chats', chatId);
+        
+        // Send message
+        const messageData = {
+          text: text,
+          senderId: currentUserId,
+          receiverId: currentChatFriend.id,
+          timestamp: serverTimestamp()
+        };
+        
+        await addDoc(messagesRef, messageData);
+        console.log('✅ Message sent successfully');
+        
+        // Update chat last message
+        await updateDoc(chatRef, {
+          lastMessage: text,
+          lastMessageAt: serverTimestamp(),
+          lastMessageSender: currentUserId
+        });
+        
+        // Clear input
+        messageInput.value = '';
+        messageInput.focus();
+        
+      } catch (error) {
+        console.error('❌ Error sending message:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        let errorMsg = 'Error sending message: ';
+        
+        if (error.code === 'permission-denied') {
+          errorMsg += 'Permission denied. Please check Firebase rules.';
+        } else if (error.code === 'not-found') {
+          errorMsg += 'Chat not found. Creating new chat...';
+          // Try to create chat and resend
+          await createChatAndResend(text);
+        } else {
+          errorMsg += error.message;
+        }
+        
+        alert(errorMsg);
+      }
+    }
+    
+    // Helper function to create chat and resend message
+    async function createChatAndResend(text) {
+      if (!currentChatFriend) return;
+      
+      try {
+        const chatId = [currentUserId, currentChatFriend.id].sort().join('_');
+        const chatRef = doc(db, 'chats', chatId);
+        const messagesRef = collection(db, 'chats', chatId, 'messages');
+        
+        // Create chat document
+        await setDoc(chatRef, {
+          participants: [currentUserId, currentChatFriend.id],
+          createdAt: serverTimestamp(),
+          lastMessage: text,
+          lastMessageAt: serverTimestamp(),
+          lastMessageSender: currentUserId
+        });
+        
+        console.log('Chat document created, sending message...');
+        
+        // Send message
+        await addDoc(messagesRef, {
+          text: text,
+          senderId: currentUserId,
+          receiverId: currentChatFriend.id,
+          timestamp: serverTimestamp()
+        });
+        
+        messageInput.value = '';
+        messageInput.focus();
+        
+      } catch (createError) {
+        console.error('Failed to create chat:', createError);
+        alert('Failed to create chat: ' + createError.message);
+      }
+    }
+    
+    // 8. SEARCH USERS
     async function searchUsers() {
       const searchTerm = searchFriendInput.value.trim().toLowerCase();
       if (!searchTerm) {
@@ -1457,7 +1760,7 @@
       }
     }
     
-    // 6. LOAD FRIENDS DATA
+    // 9. LOAD FRIENDS DATA
     function loadFriendsData() {
       console.log('📥 Loading friends...');
       
@@ -1481,7 +1784,7 @@
       });
     }
     
-    // 7. RENDER FRIENDS (SINGLE LINE) - FIXED EVENT LISTENER
+    // 10. RENDER FRIENDS (SINGLE LINE)
     async function renderFriends(friendIds) {
       friendsList.innerHTML = '';
       
@@ -1511,7 +1814,7 @@
                 <div class="friend-status">Friends</div>
               </div>
               <div class="friend-actions">
-                <button class="btn-chat" onclick="alert('Chat coming soon!')">
+                <button class="btn-chat" data-id="${friendId}">
                   <i class="fa-solid fa-message"></i> Chat
                 </button>
                 <button class="btn-remove" data-id="${friendId}" title="Remove friend">
@@ -1521,11 +1824,22 @@
             `;
             friendsList.appendChild(item);
             
-            // FIXED: Add remove friend functionality with proper event delegation
+            // Chat button
+            const chatBtn = item.querySelector('.btn-chat');
+            if (chatBtn) {
+              chatBtn.addEventListener('click', function() {
+                const friendId = this.getAttribute('data-id');
+                if (friendId) {
+                  openChat(friendId);
+                }
+              });
+            }
+            
+            // Remove button
             const removeBtn = item.querySelector('.btn-remove');
             if (removeBtn) {
-              removeBtn.addEventListener('click', function() {
-                // Get the friendId from the button's data attribute
+              removeBtn.addEventListener('click', function(event) {
+                event.stopPropagation();
                 const friendId = this.getAttribute('data-id');
                 if (friendId) {
                   removeFriend(friendId);
@@ -1539,7 +1853,7 @@
       }
     }
     
-    // 8. RENDER REQUESTS (SINGLE LINE) - FIXED EVENT LISTENER
+    // 11. RENDER REQUESTS (SINGLE LINE)
     async function renderRequests(requestIds) {
       requestsList.innerHTML = '';
       
@@ -1573,7 +1887,6 @@
             `;
             requestsList.appendChild(item);
             
-            // FIXED: Use 'this' to get the correct element
             item.querySelector('.btn-success-small').addEventListener('click', function() {
               const requesterId = this.getAttribute('data-id');
               if (requesterId) {
@@ -1606,6 +1919,23 @@
       addFriendModal.style.display = 'none';
     });
     
+    closeChatModal.addEventListener('click', () => {
+      chatModal.style.display = 'none';
+      currentChatFriend = null;
+      
+      // Clean up message listener
+      if (currentChatUnsubscribe) {
+        currentChatUnsubscribe();
+        currentChatUnsubscribe = null;
+      }
+    });
+    
+    sendMessageBtn.addEventListener('click', sendMessage);
+    
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+    
     searchFriendBtn.addEventListener('click', searchUsers);
     searchFriendInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') searchUsers();
@@ -1623,6 +1953,19 @@
     const closeStatusModal = document.getElementById('closeStatusModal');
     const postStatusBtn = document.getElementById('postStatusBtn');
     const statusInput = document.getElementById('statusInput');
+
+    // Helper function to get time ago
+    function getTimeAgo(date) {
+      if (!date) return '';
+      const now = new Date();
+      const diff = now - date;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor(diff / (1000 * 60));
+      
+      if (hours > 0) return `${hours}h ago`;
+      if (minutes > 0) return `${minutes}m ago`;
+      return 'Just now';
+    }
 
     // Load status updates
     function loadStatusUpdates() {
@@ -1733,19 +2076,6 @@
       }
     }
 
-    // Helper
-    function getTimeAgo(date) {
-      if (!date) return '';
-      const now = new Date();
-      const diff = now - date;
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor(diff / (1000 * 60));
-      
-      if (hours > 0) return `${hours}h ago`;
-      if (minutes > 0) return `${minutes}m ago`;
-      return 'Just now';
-    }
-
     // Event listeners
     openStatusModal.addEventListener('click', () => statusModal.style.display = 'flex');
     closeStatusModal.addEventListener('click', () => statusModal.style.display = 'none');
@@ -1755,7 +2085,7 @@
     loadStatusUpdates();
   }
 
-  // ===== HABIT APP (FIRESTORE VERSION - CROSS-DEVICE SYNC) =====
+  // ===== HABIT APP =====
   function initializeHabitApp(user) {
     const $ = s => document.querySelector(s);
     const $$ = s => document.querySelectorAll(s);
@@ -1823,6 +2153,7 @@
 
             const card = document.createElement('div');
             card.className = 'card';
+            card.setAttribute('data-habit-id', h.id);
             card.innerHTML = `
               <div class="progress" title="${streak} day streak">
                 <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
@@ -1857,8 +2188,24 @@
 
             grid.appendChild(card);
 
-            card.querySelector('.mark-btn').addEventListener('click', () => toggleToday(h.id));
-            card.querySelector('[data-more]').addEventListener('click', (e) => openMoreMenu(e, h.id));
+            // Make entire card clickable for marking/unmarking
+            card.addEventListener('click', (e) => {
+              // Only trigger if not clicking on the more menu button
+              if (!e.target.closest('.btn-more')) {
+                toggleToday(h.id);
+              }
+            });
+
+            // Keep the mark button clickable too
+            card.querySelector('.mark-btn').addEventListener('click', (e) => {
+              e.stopPropagation(); // Prevent card click from also firing
+              toggleToday(h.id);
+            });
+
+            card.querySelector('[data-more]').addEventListener('click', (e) => {
+              e.stopPropagation(); // Prevent card click from firing
+              openMoreMenu(e, h.id);
+            });
           });
 
           updateStatsDisplay(habits);
@@ -2052,56 +2399,9 @@
       }
       render();
     });
-
-    function escapeHtml(s){ 
-      const div = document.createElement('div');
-      div.textContent = s || '';
-      return div.innerHTML;
-    }
     
     // Start rendering
     render();
-  }
-
-  // ===== MIGRATION FUNCTION (Optional) =====
-  async function migrateLocalHabitsToFirestore(user) {
-    // Only run if user wants to migrate
-    const STORAGE_KEY = `focusforge_habits_${user.email.replace(/[^a-zA-Z0-9]/g, '_')}_v1`;
-    const localHabits = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    
-    if (localHabits.length > 0) {
-      // Check if user already has habits in Firestore
-      const habitsRef = collection(db, 'users', user.uid, 'habits');
-      const habitsSnap = await getDocs(habitsRef);
-      
-      if (habitsSnap.empty) {
-        // Only ask to migrate if Firestore is empty
-        if (confirm('Would you like to migrate your local habits to cloud storage?')) {
-          const batch = writeBatch(db);
-          
-          for (const habit of localHabits) {
-            const habitDocRef = doc(habitsRef);
-            batch.set(habitDocRef, {
-              name: habit.name,
-              note: habit.note || '',
-              color: habit.color || '#60a5fa',
-              history: habit.history || [],
-              createdAt: serverTimestamp(),
-              updatedAt: serverTimestamp()
-            });
-          }
-          
-          try {
-            await batch.commit();
-            localStorage.removeItem(STORAGE_KEY);
-            alert('Habits migrated successfully! They will now sync across devices.');
-          } catch (error) {
-            console.error('Migration error:', error);
-            alert('Migration failed. Habits remain in local storage.');
-          }
-        }
-      }
-    }
   }
 </script>
 </body>
